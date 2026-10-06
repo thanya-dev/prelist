@@ -42,6 +42,12 @@ PM / Buyer ไม่สามารถดูภาพรวมและติด
 5. ปฏิทินแสดงเฉพาะประกาศที่อยู่ใน Brief ปัจจุบันเท่านั้น
 6. หากไม่มี Product option ให้แสดงสถานะ "ยังไม่มีสินค้า" ในแท็บที่เกี่ยวข้อง
 
+## Fields & Validation
+| Field Name | Type | Rules / Validation | Required |
+|---|---|---|---|
+| Search | Text | ค้นหาจากชื่อ หรือ Brief ID | No |
+| Filter Status | Dropdown/Tabs | แบบร่าง, รอเปิดรับ, เปิดรับสมัคร, ปิดรับสมัคร | No |
+
 ## User Flow
 1. เข้าสู่เมนู "ประกาศหานักรีวิว" หรือ "Briefs"
 2. ดูรายการ Brief List พร้อมสถิติจำนวนประกาศตามสถานะ
@@ -102,6 +108,16 @@ PM / Buyer ต้องกรอกข้อมูลแบรนด์และ
 4. Product Option หากมีการเพิ่มรายการ ต้องระบุชื่อและรูปภาพ
 5. รูปแบบ Brief ID ต้องประกอบด้วย Prefix (3 ตัวอักษร) ปีค.ศ. (4 หลัก) เดือน (2 หลัก) ลำดับ (3 หลัก) เช่น NRI202610001
 6. การแก้ไข Brief ข้อมูลจะนำไปใช้เป็นค่าเริ่มต้นสำหรับ Job Posting ที่จะสร้างใหม่เท่านั้น ไม่แก้ไขประกาศเก่า
+
+## Fields & Validation
+| Field Name | Type | Rules / Validation | Required |
+|---|---|---|---|
+| Logo (Cover Image) | Image (PNG/JPG/JPEG) | ขนาดไฟล์ไม่เกิน 3 MB | Yes |
+| Project Name | Text | - | Yes |
+| Brand | Text | - | Yes |
+| Brief IDs | Array of String | รูปแบบ Prefix 3 ตัวอักษร + ปีค.ศ. 4 หลัก + เดือน 2 หลัก + ลำดับ 3 หลัก (เช่น NRI202610001) ห้ามซ้ำในระบบ | Yes (อย่างน้อย 1) |
+| Product Option: Name | Text | - | Yes (ถ้ามีการเพิ่ม Product Option) |
+| Product Option: Image | Image (PNG/JPG/JPEG) | ต้องมีรูปภาพ | Yes (ถ้ามีการเพิ่ม Product Option) |
 
 ## User Flow
 1. คลิก "สร้างบรีฟ" จาก Brief List หรือ "แก้ไขบรีฟ" จาก Brief Detail
@@ -166,6 +182,15 @@ PM / Buyer ต้องกรอกข้อมูลแบรนด์และ
 5. Campaign Type ต้องเลือกเพียง 1 รูปแบบ (Normal, Confidential, Private)
 6. แต้มคะแนนสะสม (Reward Points) จะไม่มีให้กรอกอีกต่อไป
 
+## Fields & Validation
+| Field Name | Type | Rules / Validation | Required |
+|---|---|---|---|
+| Campaign Title | Text | - | Yes (บังคับสำหรับ Save as Draft ด้วย) |
+| Project Name | Text | ดึงค่าจาก Brief ต้นทาง | Yes (สำหรับ Publish) |
+| Brand | Text | ดึงค่าจาก Brief ต้นทาง | Yes (สำหรับ Publish) |
+| Cover Image | Image | ดึงค่าจาก Brief ต้นทาง | Yes (สำหรับ Publish) |
+| Campaign Type | Radio | เลือกได้ 1 ค่า (Normal, Confidential, Private) | Yes (สำหรับ Publish) |
+
 ## User Flow
 1. กดปุ่ม สร้างประกาศ จาก Brief Detail ต้นทาง
 2. ระบบตั้งค่าเริ่มต้น (Title, Brand, Logo) โดยดึงจาก Brief ต้นทาง
@@ -228,6 +253,18 @@ PM / Buyer ต้องกรอกข้อมูลแบรนด์และ
 5. หากผู้ใช้เอาติ๊ก Platform ออก ระบบจะล้าง Scope ที่ขัดแย้งทิ้งโดยอัตโนมัติ
 6. Gender สามารถเลือกได้หลายค่า (เก็บค่าเป็น Array)
 
+## Fields & Validation
+| Field Name | Type | Rules / Validation | Required |
+|---|---|---|---|
+| Target Influencer | Number | ต้อง ≥ 1 (จำนวนเต็มบวก) | Yes (สำหรับ Publish) |
+| Target Post | Number | ต้อง ≥ 0 (จำนวนเต็มบวก หรือ 0) | Yes (สำหรับ Publish) |
+| Target Group | Text | - | Yes (สำหรับ Publish) |
+| Gender | Checkboxes | เลือกได้หลายค่า (เก็บค่าเป็น Array) | Yes (สำหรับ Publish) |
+| Age MIN / MAX | Number | MIN ≤ MAX | Yes (สำหรับ Publish) |
+| Follower MIN / MAX | Number | MIN ≤ MAX | Yes (สำหรับ Publish) |
+| Platform | Checkboxes | เลือกได้อย่างน้อย 1 ค่า | Yes (สำหรับ Publish) |
+| Scope / Content Types | Radio/Checkbox | ตัวเลือกจำกัดตาม Platform ที่เลือก หากเอา Platform ออก Scope ที่ขัดแย้งจะถูกล้างทิ้ง | Yes (สำหรับ Publish) |
+
 ## User Flow
 1. เปิดหน้าสร้าง/แก้ไขประกาศ เลื่อนไปยังส่วน Creator Criteria
 2. ระบุจำนวนเป้าหมาย Influencer และ Post
@@ -286,6 +323,14 @@ PM / Buyer ต้องกรอกข้อมูลแบรนด์และ
 5. วันที่เก็บข้อมูลในรูปแบบ ISO calendar date `YYYY-MM-DD` (ปีค.ศ.) แต่แสดงผลบน UI เป็น พ.ศ. (ปี+543)
 6. หากปิดรับสมัครและเริ่มรับสมัครวันเดียวกัน ถือว่าผ่านกฎ
 
+## Fields & Validation
+| Field Name | Type | Rules / Validation | Required |
+|---|---|---|---|
+| Apply Start Date | Date | รูปแบบ ISO YYYY-MM-DD | Yes (สำหรับ Publish) |
+| Deadline (Apply End Date) | Date | Deadline ≥ Apply Start Date | Yes (สำหรับ Publish) |
+| Start Date (Campaign) | Date | Start Date ≥ Deadline | Yes (สำหรับ Publish) |
+| End Date (Campaign) | Date | End Date ≥ Start Date | Yes (สำหรับ Publish) |
+
 ## User Flow
 1. เปิดหน้าสร้าง/แก้ไขประกาศ เลื่อนไปยังส่วน ระยะเวลาของแคมเปญ
 2. ระบุช่วงเวลาเปิด - ปิดรับสมัคร
@@ -341,6 +386,12 @@ PM / Buyer ต้องกรอกข้อมูลแบรนด์และ
 3. Viewer count ใช้ label ว่า `เปิดดูประกาศ` หน่วยเป็น `คน`
 4. หากข้อมูลฟิลด์ใดไม่ได้ระบุไว้ (เช่นในกรณีแบบร่าง) ให้แสดงว่า "ยังไม่ระบุ" ห้ามแทนที่ด้วย Sample data มั่วๆ
 5. ไม่มีข้อมูล Reward Points บนหน้ารายละเอียด (ถูกถอดออกแล้ว)
+
+## Fields & Validation
+| Field Name | Type | Rules / Validation | Required |
+|---|---|---|---|
+| Viewer Count | Number | อ่านอย่างเดียว, ค่าเริ่มต้น 0 | - |
+| Applicant Count | Number | อ่านอย่างเดียว, ค่าเริ่มต้น 0 | - |
 
 ## User Flow
 1. คลิกเข้าชม Job Posting จากหน้า Brief
@@ -404,6 +455,12 @@ PM / Buyer ไม่สามารถจัดการรายชื่อผ
 6. Checkboxes สำหรับเลือกหลายคนและส่งออก (Export) เฉพาะนักรีวิวที่อยู่ในสถานะ "ทีมงานเลือกแล้ว" เท่านั้น
 7. การเพิ่มนักรีวิว สามารถอัปโหลดแบบ Bulk ด้วย CSV/TSV วางข้อมูล 2 คอลัมน์ (username, platform) ระบบจะดึงคนเข้าสู่สถานะรอพิจารณา 
 
+## Fields & Validation
+| Field Name | Type | Rules / Validation | Required |
+|---|---|---|---|
+| Bulk Upload (CSV/TSV) | File / Paste Text | ต้องมี 2 คอลัมน์ (username, platform), ตรวจสอบ username ห้ามซ้ำกัน | Yes (เมื่อใช้อัปโหลด) |
+| Reviewer Checkbox | Boolean | อนุญาตให้ติ๊กเลือกได้เฉพาะนักรีวิวในสถานะ "ทีมงานเลือกแล้ว" | No |
+
 ## User Flow
 1. เปิด Job Posting Detail เลื่อนลงไปส่วนรายชื่อนักรีวิว
 2. สลับแท็บสถานะเพื่อดูคนต่างๆ
@@ -466,6 +523,12 @@ PM / Buyer ไม่สามารถจัดการรายชื่อผ
 4. การดึงคนจาก Brief ID จะต้องดึงเฉพาะนักรีวิวที่อยู่ในสถานะ "ลูกค้าเลือกแล้ว" มาแสดง และไม่รวมคนที่ถูก import มาใน campaign นี้แล้ว
 5. การกระทำบนหน้า Campaign Task เป็นการแยก Snapshot จาก Posting จะไม่ส่งผลย้อนกลับไปกระทบ Posting
 
+## Fields & Validation
+| Field Name | Type | Rules / Validation | Required |
+|---|---|---|---|
+| Brief ID Search | Text | ค้นหา Brief ID ที่มีในระบบเพื่อดึงคนเฉพาะสถานะ "ลูกค้าเลือกแล้ว" (ไม่ดึงคนที่อยู่ในแคมเปญนี้แล้วซ้ำ) | Yes (ถ้า Import ด้วยโหมด Brief ID) |
+| CSV Import | File | ไฟล์ CSV สำหรับนำเข้ารายชื่อนักรีวิว | Yes (ถ้า Import ด้วยโหมด CSV) |
+
 ## User Flow
 1. กดคลิกเลือก Campaign Card เข้ามาสู่หน้า Campaign Detail
 2. ไปที่แท็บ Influencer List เพื่อดูตารางนักรีวิวที่อยู่ในการทำงานแล้ว
@@ -521,6 +584,11 @@ PM / Buyer ไม่สามารถจัดการรายชื่อผ
 2. ส่วน KOL discovery ประกอบด้วยเมนู: Discovery, ประกาศหานักรีวิว, Explore ตามลำดับ
 3. เมนู "ประกาศหานักรีวิว" ให้นำทางไปสู่ `/briefs` (Brief List)
 4. หากอยู่ใน Sidebar ใดที่คลิก Projects ให้นำทางเปิดที่หน้า Project List ทันที
+
+## Fields & Validation
+| Field Name | Type | Rules / Validation | Required |
+|---|---|---|---|
+| ไม่มี Input Fields | - | เป็นเพียงส่วนการนำทาง (Navigation) | - |
 
 ## User Flow
 1. ผู้ใช้ตรวจสอบแถบ Sidebar ค้นหากลุ่ม KOL discovery

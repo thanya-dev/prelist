@@ -1,12 +1,10 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   ArrowLeft,
-  ArrowSquareOut,
   CalendarBlank,
   CaretRight,
   ChartLineUp,
-  Check,
   CheckCircle,
   CurrencyDollar,
   FileText,
@@ -18,15 +16,14 @@ import {
   User,
   WarningCircle,
 } from '@phosphor-icons/react';
+import { ProjectInformation } from './ProjectInformation.jsx';
 import { BrandMark } from '../../components/shared/BrandMark.jsx';
 import { Sidebar } from '../../components/layout/Sidebar.jsx';
-import { PROJECT_STATUS_FLOW } from './projectStatuses.js';
-export function ProjectDetails({ project, onBack, onEdit, onStatusChange }) {
+export function ProjectDetails({ project, onBack, onEdit }) {
   const navigate = useNavigate();
-  const [showUpgrade, setShowUpgrade] = useState(false);
   const [tab, setTab] = useState('Project details');
   const [prelistFilter, setPrelistFilter] = useState('All');
-  const isLightProject = project.status === 'Draft';
+  const isLightProject = ['Draft', 'Prelist'].includes(project.status);
   const handleTabClick = (label) => {
     if (label === 'Expense report') {
       window.open('https://manage.buddyreview.co/project/uGvkPwRGps', '_blank');
@@ -46,7 +43,11 @@ export function ProjectDetails({ project, onBack, onEdit, onStatusChange }) {
       <Sidebar onList={onBack} />
       <main className="list-main lifecycle-detail">
         <div className="breadcrumbs">
-          Management <CaretRight /> Projects <CaretRight /> <b>{project.name}</b>
+          Management <CaretRight />{' '}
+          <Link to="/projects" className="hover:text-[#5135ff] hover:underline transition-colors">
+            Projects
+          </Link>{' '}
+          <CaretRight /> <b>{project.name}</b>
         </div>
         <div className="detail-heading">
           <button className="back-inline" onClick={onBack}>
@@ -56,11 +57,6 @@ export function ProjectDetails({ project, onBack, onEdit, onStatusChange }) {
             <button className="secondary-button" onClick={() => onEdit(project)}>
               <NotePencil /> แก้ไข
             </button>
-            {isLightProject && (
-              <button className="primary" onClick={() => setShowUpgrade(true)}>
-                เปลี่ยนเป็น On Going <ArrowSquareOut />
-              </button>
-            )}
           </div>
         </div>
         <section className="project-summary">
@@ -140,81 +136,7 @@ export function ProjectDetails({ project, onBack, onEdit, onStatusChange }) {
                 </>
               )}
             </div>
-            <div className="detail-grid">
-              <section className="detail-card">
-                <h2>Creator Requirement</h2>
-                <dl>
-                  <div>
-                    <dt>Platform</dt>
-                    <dd>{project.platforms?.join(', ') || '—'}</dd>
-                  </div>
-                  <div>
-                    <dt>Content Type</dt>
-                    <dd>{project.contentTypes?.join(', ') || '—'}</dd>
-                  </div>
-                  <div>
-                    <dt>Target Influencer</dt>
-                    <dd>{project.target || '—'} คน</dd>
-                  </div>
-                </dl>
-              </section>
-              <section className="detail-card">
-                <h2>Job Information</h2>
-                <dl>
-                  <div>
-                    <dt>Short Brief</dt>
-                    <dd>{project.brief || 'ยังไม่มีข้อมูล'}</dd>
-                  </div>
-                  <div>
-                    <dt>Application Deadline</dt>
-                    <dd>{project.deadline || 'ไม่ระบุ'}</dd>
-                  </div>
-                </dl>
-              </section>
-              <section className="detail-card">
-                <h2>Compensation</h2>
-                <dl>
-                  <div>
-                    <dt>Type</dt>
-                    <dd>{project.compensation || 'ยังไม่ระบุ'}</dd>
-                  </div>
-                  <div>
-                    <dt>Budget</dt>
-                    <dd>
-                      {project.budgetMin || project.budgetMax
-                        ? `${project.budgetMin || 0} - ${project.budgetMax || 0} THB`
-                        : 'ไม่ระบุ'}
-                    </dd>
-                  </div>
-                </dl>
-              </section>
-              <section className="detail-card">
-                <h2>Lifecycle</h2>
-                <div className="mini-stepper">
-                  {PROJECT_STATUS_FLOW.map((item) => (
-                    <div
-                      key={item}
-                      className={
-                        PROJECT_STATUS_FLOW.indexOf(item) <=
-                        PROJECT_STATUS_FLOW.indexOf(project.status)
-                          ? 'done'
-                          : ''
-                      }
-                    >
-                      <span>
-                        {PROJECT_STATUS_FLOW.indexOf(item) <
-                        PROJECT_STATUS_FLOW.indexOf(project.status) ? (
-                          <Check />
-                        ) : (
-                          PROJECT_STATUS_FLOW.indexOf(item) + 1
-                        )}
-                      </span>
-                      <b>{item}</b>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            </div>
+            <ProjectInformation project={project} />
           </>
         )}
         {tab === 'Campaign List' && (
@@ -349,35 +271,6 @@ export function ProjectDetails({ project, onBack, onEdit, onStatusChange }) {
                 >
                   <User size={16} /> nattaya@buddyreview.co
                 </span>
-              </div>
-            </div>
-          </div>
-        )}
-        {showUpgrade && (
-          <div className="modal-backdrop">
-            <div className="upgrade-modal">
-              <WarningCircle size={38} weight="fill" />
-              <h2>ต้องกรอก Project Setup ก่อน</h2>
-              <p>
-                การเปลี่ยนสถานะเป็น On Going หมายถึง Project เริ่มดำเนินงานแล้ว กรุณากรอก Project
-                ID, Quotation, Assign PM, Target Post และ Budget ให้ครบ
-              </p>
-              <div>
-                <button className="secondary-button" onClick={() => setShowUpgrade(false)}>
-                  ไว้ภายหลัง
-                </button>
-                <button
-                  className="primary"
-                  onClick={() => {
-                    setShowUpgrade(false);
-                    onEdit({
-                      ...project,
-                      status: 'On Going',
-                    });
-                  }}
-                >
-                  กรอกข้อมูลเพิ่มเติม
-                </button>
               </div>
             </div>
           </div>

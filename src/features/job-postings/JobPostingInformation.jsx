@@ -1,4 +1,12 @@
-import { FileText, Users, CalendarBlank, Gift, LinkSimple, Info } from '@phosphor-icons/react';
+import {
+  FileText,
+  Users,
+  CalendarBlank,
+  Gift,
+  LinkSimple,
+  Info,
+  Gear,
+} from '@phosphor-icons/react';
 import { PlatformLogo } from '../../components/shared/PlatformLogo.jsx';
 import { CONTENT_SCOPE_GROUPS } from './CreatorCriteriaFields.jsx';
 import { DAY_MS, parseDay } from '../../utils/formatDate.js';
@@ -54,17 +62,40 @@ export function JobPostingInformation({ job }) {
     )?.label;
   return (
     <div className="posting-information mt-6 grid gap-6 max-[760px]:gap-4">
-      <InformationSection title="ประเภทแคมเปญ" icon={FileText}>
+      <InformationSection title="Setting" icon={Gear}>
         <InformationField label="Campaign Type">
-          {job.campaignType === 'confidential' ? 'Confidential campaign' : 'Normal'}
+          {displayValue(
+            {
+              normal: 'Normal',
+              confidential: 'Confidential campaign',
+              private: 'Private campaign',
+            }[job.campaignType],
+          )}
         </InformationField>
+        {job.campaignType === 'confidential' && (
+          <>
+            <InformationField label="Confidential Title">
+              {displayValue(job.confidentialTitle)}
+            </InformationField>
+            <InformationField label="Confidential Subtitle">
+              {displayValue(job.confidentialSubtitle)}
+            </InformationField>
+          </>
+        )}
+        <InformationField label="Campaign Title">{displayValue(job.name)}</InformationField>
+        <InformationField label="Campaign Subtitle">{displayValue(job.subtitle)}</InformationField>
+        <InformationField label="Brand">{displayValue(job.brand)}</InformationField>
+        <InformationField label="Owner / Assign Buyer">{displayValue(job.owner)}</InformationField>
       </InformationSection>
+
       <InformationSection title="Creator Criteria" icon={Users}>
         <InformationField label="Target influencer">
           {displayValue(job.reviewers)} คน
         </InformationField>
         <InformationField label="Target post">{displayValue(job.targetPost)}</InformationField>
-        <InformationField label="Target group">{displayValue(job.targetGroup)}</InformationField>
+        <div className="col-span-full">
+          <InformationField label="Target group">{displayValue(job.targetGroup)}</InformationField>
+        </div>
         <InformationField label="เพศ">
           {displayValue(job.genders?.join(', ') || job.gender)}
         </InformationField>
@@ -95,20 +126,33 @@ export function JobPostingInformation({ job }) {
           )}
         </InformationField>
       </InformationSection>
+
       <InformationSection title="Job Information" icon={CalendarBlank}>
         <div className="col-span-full">
           <InformationField label="Short Brief">{displayValue(job.shortBrief)}</InformationField>
         </div>
         <div className="col-span-full">
-          <h3 className="text-base">ระยะเวลาของแคมเปญ</h3>
+          <InformationField label="Brief Link">
+            {/^https?:\/\//i.test(job.briefLink || '') ? (
+              <a className="text-[#3b28cc]" href={job.briefLink} target="_blank" rel="noreferrer">
+                {job.briefLink}
+              </a>
+            ) : (
+              displayValue(job.briefLink)
+            )}
+          </InformationField>
         </div>
-        <InformationField label="ระยะเวลารับสมัคร">
-          {formatDate(job.applyStartDate)} – {formatDate(job.deadline)}
-        </InformationField>
-        <InformationField label="ระยะเวลาทำแคมเปญ">
+        <div className="col-span-full">
+          <h3 className="text-base text-[#1e293b] font-medium">ระยะเวลาของแคมเปญ</h3>
+        </div>
+        <InformationField label="Working / Event Date (วันที่เริ่มทำแคมเปญ)">
           {formatDate(job.startDate)} – {formatDate(job.endDate)}
         </InformationField>
+        <InformationField label="Application Period (วันที่เปิดรับสมัคร)">
+          {formatDate(job.applyStartDate)} – {formatDate(job.deadline)}
+        </InformationField>
       </InformationSection>
+
       <InformationSection title="Compensation" icon={Gift}>
         <InformationField label="Compensation Type">
           {displayValue(job.compensation)}
@@ -125,23 +169,6 @@ export function JobPostingInformation({ job }) {
             </InformationField>
           </div>
         )}
-      </InformationSection>
-      <InformationSection title="Reference Brief" icon={LinkSimple}>
-        <InformationField label="Brief Link">
-          {/^https?:\/\//i.test(job.briefLink || '') ? (
-            <a className="text-[#3b28cc]" href={job.briefLink} target="_blank" rel="noreferrer">
-              {job.briefLink}
-            </a>
-          ) : (
-            displayValue(job.briefLink)
-          )}
-        </InformationField>
-      </InformationSection>
-      <InformationSection title="Basic Information" icon={Info}>
-        <InformationField label="Campaign Title">{displayValue(job.name)}</InformationField>
-        <InformationField label="Campaign Subtitle">{displayValue(job.subtitle)}</InformationField>
-        <InformationField label="Brand">{displayValue(job.brand)}</InformationField>
-        <InformationField label="Owner / Assign Buyer">{displayValue(job.owner)}</InformationField>
       </InformationSection>
     </div>
   );

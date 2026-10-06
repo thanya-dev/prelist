@@ -5,10 +5,12 @@ import {
   ArrowLeft,
   CalendarBlank,
   CaretRight,
+  Eye,
   List,
   MagnifyingGlass,
   NotePencil,
   Plus,
+  Users,
 } from '@phosphor-icons/react';
 import { SEED_JOB_POSTINGS } from './jobPostingSeeds.js';
 import { getJobPostings } from './jobPostingApi.js';
@@ -164,8 +166,16 @@ export function PostingCalendarList({ briefId }) {
                 <th>ประกาศ / แคมเปญ</th>
                 <th>ช่วงรับสมัคร</th>
                 <th>สถานะ</th>
-                <th>เปิดดูประกาศ</th>
-                <th>ผู้สมัคร</th>
+                <th>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Eye size={18} /> เปิดดูประกาศ
+                  </div>
+                </th>
+                <th>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Users size={18} /> ผู้สมัคร
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -308,14 +318,15 @@ export function PostingCalendarList({ briefId }) {
                             <div className="posting-event-footer">
                               {badge(job)}
                               <span className="posting-event-counts">
-                                <span>
-                                  เปิดดูประกาศ{' '}
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <Eye size={14} /> เปิดดูประกาศ{' '}
                                   {job.viewerCount == null
                                     ? '0 คน'
                                     : `${job.viewerCount.toLocaleString('th-TH')} คน`}
                                 </span>
-                                <span>
-                                  สมัคร {(job.applicants || 0).toLocaleString('th-TH')} คน
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <Users size={14} /> สมัคร{' '}
+                                  {(job.applicants || 0).toLocaleString('th-TH')} คน
                                 </span>
                               </span>
                             </div>

@@ -52,3 +52,23 @@ final result: passed
 - [x] Brand search, owner, draft requirements and parent navigation preserved.
 - [x] Desktop/mobile capture and visual comparison.
 - [x] Build and format verification.
+
+## Campaign Create/Edit — 2026-10-06
+
+Source: four screenshots in `/Users/thanya/Downloads/screencapture-manage-test-buddyreview-co-campaign-create-qu2sMepIyS-2026-10-06-19_11_{31,43,50,56}.png`.
+Implementation: Chrome tab 1557469775, browser screenshot evidence in this session, `/campaigns/page-promotion-facebook/edit`.
+Desktop viewport 1440px wide; narrow viewport 390 × 844. Source is 2× density (2880px wide); desktop screenshots are 1×. Step 4 source and implementation were displayed in the same comparison tool output. Step 2 desktop and narrow full-page images were inspected. Sample campaign values intentionally differ from the reference.
+
+Typography uses existing Bai Jamjuree; body increased from 14 to 16px after comparison. Pale panels, blue selected cards, border colors, two-column preview/form composition and spacing follow the supplied references. Existing campaign image and social logos are reused. Actual campaign data replaces reference sample titles and dates.
+
+Iteration: radio controls originally stretched vertically because of inherited input styling; fixed explicit 16px radio dimensions and top alignment. Completed step checkmarks received explicit white color after contrast inspection. Narrow viewport stacks form cards and preview without horizontal overflow.
+
+Interactions checked: step navigation, preserved values across steps, Brief text entry and formatting markers, copy campaign, create/save, return to Campaign Detail, reopen saved edit values. Browser error logs: none observed.
+
+Remaining P2: Brief editor provides text and formatting markers rather than a full rich-text editor; native logo upload and removal differ visually from the reference image overlay. Uploads are limited to 3 MB per file for prototype localStorage persistence, instead of the larger production limits shown in the reference. Screenshot artifacts are in tool output, not saved to disk. These differences prevent a strict 1:1 fidelity pass.
+
+final result: blocked
+
+## Two-step campaign follow-up — 2026-10-06
+
+The approved flow supersedes the four-step screenshot structure: source selection then editable campaign settings. Desktop (1440px) and narrow (390 × 844) browser screenshots were inspected in this session. Editable settings use two columns on desktop and one on narrow screens. Inherited data is collapsed with a lock icon; optional settings are also collapsed. Browser checks confirmed two step items, Edit starting on step 2, editable selected-reviewer brief, preservation of saved points/link/Do content, direct save to Campaign Detail, manual-entry fallback validation and source selection through Brief ID. No browser console errors observed. Strict fidelity limitations from the earlier four-step implementation remain outside this scoped change.

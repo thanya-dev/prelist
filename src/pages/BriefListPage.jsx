@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CaretRight, ListMagnifyingGlass, MagnifyingGlass, Plus } from '@phosphor-icons/react';
 import { getBriefs } from '../features/briefs/briefApi.js';
-import { BrandMark } from '../components/shared/BrandMark.jsx';
+import { BriefSummary } from '../features/briefs/BriefSummary.jsx';
 import { Sidebar } from '../components/layout/Sidebar.jsx';
 import { getJobPostings } from '../features/job-postings/jobPostingApi.js';
 import {
@@ -13,12 +13,23 @@ import {
 export function BriefListPage() {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   const postings = getJobPostings();
   const briefs = getBriefs().filter((brief) =>
-    `${brief.name} ${brief.title || ''} ${brief.brand} ${brief.id}`
+    `${brief.name} ${brief.title || ''} ${brief.brand} ${brief.id} ${(brief.briefNumbers || []).join(' ')}`
       .toLowerCase()
       .includes(query.trim().toLowerCase()),
   );
+
+  const totalPages = Math.ceil(briefs.length / pageSize);
+  const validCurrentPage = Math.min(currentPage, Math.max(1, totalPages));
+
+  const paginatedBriefs = briefs.slice(
+    (validCurrentPage - 1) * pageSize,
+    validCurrentPage * pageSize,
+  );
+
   return (
     <div className="app-shell">
       <Sidebar />
@@ -33,7 +44,10 @@ export function BriefListPage() {
             <input
               aria-label="ค้นหาชื่อบรีฟหรือ Brief ID"
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setCurrentPage(1);
+              }}
               placeholder="ค้นหาด้วยชื่อบรีฟ หรือ Brief ID"
             />
           </label>
@@ -42,8 +56,8 @@ export function BriefListPage() {
           </button>
         </div>
         <section className="project-list grid gap-5" aria-label="รายการ Brief">
-          {briefs.length ? (
-            briefs.map((brief) => {
+          {paginatedBriefs.length ? (
+            paginatedBriefs.map((brief) => {
               const linkedPostings = postings.filter((posting) => posting.brief === brief.id);
               const statusCounts = linkedPostings.reduce((counts, posting) => {
                 const { state } = getRecruitmentPeriod(posting);
@@ -53,22 +67,10 @@ export function BriefListPage() {
               return (
                 <article
                   key={brief.id}
-                  className="project-card brief-card gap-6 pt-5 pr-8 pb-5 pl-5 max-[760px]:gap-4 max-[760px]:p-3"
+                  className="project-card brief-card gap-6 pt-5 pr-8 pb-5 pl-5 max-[760px]:gap-4 max-[760px]:p-3 cursor-pointer hover:bg-slate-50 transition-colors"
+                  onClick={() => navigate(`/briefs/${brief.id}`)}
                 >
-                  <div className="thumb-wrap">
-                    <BrandMark project={brief} />
-                  </div>
-                  <div className="project-info">
-                    <h2>
-                      <button
-                        className="brief-title"
-                        onClick={() => navigate(`/briefs/${brief.id}`)}
-                      >
-                        {brief.title || brief.name}
-                      </button>
-                    </h2>
-                    <p>{brief.name}</p>
-                    <span className="id-pill">{brief.id}</span>
+                  <BriefSummary brief={brief} onOpen={() => navigate(`/briefs/${brief.id}`)}>
                     <div
                       className="mt-4 flex flex-wrap items-center gap-3"
                       aria-label="จำนวนประกาศแยกตามสถานะ"
@@ -84,11 +86,14 @@ export function BriefListPage() {
                         ))}
                       </div>
                     </div>
-                  </div>
+                  </BriefSummary>
                   <button
                     className="brief-open"
                     aria-label="เปิด Brief"
-                    onClick={() => navigate(`/briefs/${brief.id}`)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/briefs/${brief.id}`);
+                    }}
                   >
                     <CaretRight size={22} />
                   </button>
@@ -106,6 +111,32 @@ export function BriefListPage() {
             </div>
           )}
         </section>
+
+        {totalPages > 1 && (
+          <div className="pagination" style={{ marginTop: '32px' }}>
+            <button
+              disabled={validCurrentPage === 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            >
+              ‹
+            </button>
+            {Array.from({ length: totalPages }).map((_, i) => (
+              <button
+                key={i + 1}
+                className={validCurrentPage === i + 1 ? 'selected' : ''}
+                onClick={() => setCurrentPage(i + 1)}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button
+              disabled={validCurrentPage === totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            >
+              ›
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );

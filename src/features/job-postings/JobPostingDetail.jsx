@@ -1,6 +1,6 @@
 import { useReviewerDecisions } from './useReviewerDecisions.js';
-import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import {
   ArrowLeft,
   CaretRight,
@@ -30,8 +30,8 @@ import {
 } from '@phosphor-icons/react';
 import { SEED_JOB_POSTINGS } from './jobPostingSeeds.js';
 import { getJobPostings } from './jobPostingApi.js';
+import { JobPostingSummary } from './JobPostingSummary.jsx';
 import { JobPostingInformation } from './JobPostingInformation.jsx';
-import { BrandMark } from '../../components/shared/BrandMark.jsx';
 import { Sidebar } from '../../components/layout/Sidebar.jsx';
 import { PRELIST_REVIEWERS } from '../projects/prelistSeeds.js';
 export function JobPostingDetail() {
@@ -46,10 +46,9 @@ export function JobPostingDetail() {
   );
   const matchesTab = (item, tab) => {
     const status = decisionFor(item)?.status;
-    if (tab === 'สมัคร') return true;
-    if (tab === 'Reject' || tab === 'Accept') return status === tab;
-    if (status === 'Reject') return false;
-    if (tab === 'ทีมงานเลือกแล้ว') return !status;
+    if (tab === 'สมัคร') return !status || status === 'pending';
+    if (tab === 'Reject') return status === 'Reject';
+    if (tab === 'ทีมงานเลือกแล้ว') return status === 'TeamAccept';
     if (tab === 'ลูกค้าเลือกแล้ว') return status === 'Accept';
     return false;
   };
@@ -152,21 +151,59 @@ export function JobPostingDetail() {
     ...addedReviewers,
   ];
   const visibleReviewers = reviewers.filter((item) => matchesTab(item, activeTab));
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 24;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
+
+  const totalPages = Math.ceil(visibleReviewers.length / pageSize);
+  const paginatedReviewers = visibleReviewers.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
   const customerSelected = (item) => decisionFor(item)?.status === 'Accept';
   const [selectedReviewerIds, setSelectedReviewerIds] = useState([]);
-  const canDecide = (item) => !decisionFor(item);
-  const eligibleVisibleReviewers = visibleReviewers.filter(canDecide);
+  const canDecide = (item) => !decisionFor(item) || decisionFor(item)?.status === 'TeamAccept';
+  const canSelect = canDecide;
+  const eligibleVisibleReviewers = visibleReviewers.filter(canSelect);
   const eligibleSelectedIds = selectedReviewerIds.filter((id) =>
-    reviewers.some((item) => item.id === id && canDecide(item)),
+    reviewers.some((item) => item.id === id && canSelect(item)),
   );
   const [bulkNotice, setBulkNotice] = useState('');
   const toggleReviewer = (reviewerId) => {
-    if (!reviewers.some((item) => item.id === reviewerId && canDecide(item))) return;
+    if (!reviewers.some((item) => item.id === reviewerId && canSelect(item))) return;
     setSelectedReviewerIds((current) =>
       current.includes(reviewerId)
         ? current.filter((value) => value !== reviewerId)
         : [...current, reviewerId],
     );
+  };
+  const exportSelectedCsv = () => {
+    const selectedItems = reviewers.filter((item) => eligibleSelectedIds.includes(item.id));
+    if (!selectedItems.length) return;
+
+    const headers = ['Username', 'Platform', 'Followers', 'Est. Reach'];
+    const rows = selectedItems.map((item) => [
+      item.username,
+      item.platform,
+      item.followers,
+      item.estReach,
+    ]);
+
+    const escapeCell = (value) => `"${String(value ?? '').replaceAll('"', '""')}"`;
+    const csv = `\uFEFF${[headers, ...rows].map((row) => row.map(escapeCell).join(',')).join('\r\n')}`;
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `reviewers-${job.id}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setSelectedReviewerIds([]);
+    setBulkNotice(`Export ${selectedItems.length} คนเป็น CSV เรียบร้อย`);
   };
   const allVisibleSelected =
     eligibleVisibleReviewers.length > 0 &&
@@ -177,7 +214,8 @@ export function JobPostingDetail() {
         ? current.filter((value) => !eligibleVisibleReviewers.some((item) => item.id === value))
         : [...new Set([...current, ...eligibleVisibleReviewers.map((item) => item.id)])],
     );
-  const bulkMakeDecision = (decisionStatus) => {
+  const [confirmDecision, setConfirmDecision] = useState(null);
+  const executeBulkDecision = (decisionStatus) => {
     const chosenIds = selectedReviewerIds.filter((id) =>
       reviewers.some((item) => item.id === id && canDecide(item)),
     );
@@ -186,8 +224,13 @@ export function JobPostingDetail() {
       ...JSON.parse(localStorage.getItem('buddy-reviewer-decisions') || '{}'),
     };
     chosenIds.forEach((id) => {
+      const currentStatus = decisions[`${job.id}:${id}`]?.status;
+      let nextStatus = decisionStatus;
+      if (decisionStatus === 'Accept') {
+        nextStatus = !currentStatus || currentStatus === 'pending' ? 'TeamAccept' : 'Accept';
+      }
       decisions[`${job.id}:${id}`] = {
-        status: decisionStatus,
+        status: nextStatus,
         by: 'thanya@buddyreview.co',
         sentBy: null,
         date: new Date().toISOString(),
@@ -196,23 +239,17 @@ export function JobPostingDetail() {
     localStorage.setItem('buddy-reviewer-decisions', JSON.stringify(decisions));
     setReviewerDecisions(decisions);
     setSelectedReviewerIds([]);
-    setBulkNotice(`${decisionStatus} ${chosenIds.length} คนเรียบร้อยแล้ว`);
   };
   const decisionLabel = (item) => {
     const decision = decisionFor(item);
+    if (!decision) return null;
     return (
-      <div className={`reviewer-decision ${decision?.status.toLowerCase() || 'pending'}`}>
-        {decision ? (
-          <>
-            <strong>{decision.status}</strong>
-            <small>
-              {decision.status} โดย {decision.by}
-            </small>
-            {decision.sentBy && <small>ส่ง Sale แล้ว โดย {decision.sentBy}</small>}
-          </>
-        ) : (
-          <span>รอ Accept / Reject</span>
-        )}
+      <div className={`reviewer-decision ${decision.status.toLowerCase()}`}>
+        {decision.status !== 'TeamAccept' && <strong>{decision.status}</strong>}
+        <small>
+          {decision.status === 'TeamAccept' ? 'เลือกโดย' : `${decision.status} โดย`} {decision.by}
+        </small>
+        {decision.sentBy && <small>ส่ง Sale แล้ว โดย {decision.sentBy}</small>}
       </div>
     );
   };
@@ -230,13 +267,18 @@ export function JobPostingDetail() {
           <CheckCircle weight="fill" /> ลูกค้าเลือกแล้ว
         </div>
       );
-    if (decisionFor(item)) return null;
     return (
       <div className="reviewer-decision-actions">
-        <button className="reviewer-reject" onClick={() => decide(item.id, 'Reject')}>
+        <button
+          className="reviewer-reject"
+          onClick={() => setConfirmDecision({ type: 'individual', id: item.id, action: 'Reject' })}
+        >
           <X /> Reject
         </button>
-        <button className="reviewer-accept" onClick={() => decide(item.id, 'Accept')}>
+        <button
+          className="reviewer-accept"
+          onClick={() => setConfirmDecision({ type: 'individual', id: item.id, action: 'Accept' })}
+        >
           <Check /> Accept
         </button>
       </div>
@@ -249,7 +291,22 @@ export function JobPostingDetail() {
         className={`list-main lifecycle-detail ${mainTab === 'รายชื่อนักรีวิว' ? 'has-reviewer-toolbar' : ''}`}
       >
         <div className="breadcrumbs">
-          ประกาศหานักรีวิว <CaretRight /> <b>{job.name}</b>
+          <Link to="/briefs" className="hover:text-[#5135ff] hover:underline transition-colors">
+            ประกาศหานักรีวิว
+          </Link>{' '}
+          <CaretRight />{' '}
+          {job.brief && (
+            <>
+              <Link
+                to={`/briefs/${job.brief}`}
+                className="hover:text-[#5135ff] hover:underline transition-colors"
+              >
+                {job.brief}
+              </Link>{' '}
+              <CaretRight />{' '}
+            </>
+          )}
+          <b>{job.name}</b>
         </div>
         <div className="detail-heading">
           <button
@@ -261,7 +318,17 @@ export function JobPostingDetail() {
           <div className="detail-heading-actions">
             <button
               className="secondary-button"
-              onClick={() => alert('เปิดหน้าประกาศ (Public Link)')}
+              onClick={() => {
+                if (['JOB20260901', 'JOB20261001'].includes(job.id)) {
+                  window.open(
+                    'https://www.buddyreview.co/campaign/EMr3CC9K56/preview',
+                    '_blank',
+                    'noopener,noreferrer',
+                  );
+                } else {
+                  alert('เปิดหน้าประกาศ (Public Link)');
+                }
+              }}
             >
               <Storefront /> ดูหน้าประกาศ
             </button>
@@ -278,36 +345,10 @@ export function JobPostingDetail() {
           </div>
         </div>
 
-        <article className="project-card posting-summary gap-6 p-6 mb-6 max-[760px]:gap-4 max-[760px]:p-3">
-          <div className="thumb-wrap">
-            <BrandMark project={job} />
-            <button
-              className="edit-chip"
-              aria-label="แก้ไขประกาศ"
-              onClick={() => navigate(`/job-postings/${job.id}/edit`)}
-            >
-              <NotePencil size={15} /> แก้ไข
-            </button>
-          </div>
-          <div className="project-info">
-            <div className="project-title-row">
-              <h1 className="posting-summary-title">{job.name}</h1>
-              <span className="id-pill">Brief: {job.brief}</span>
-            </div>
-            <div className="owner">
-              <Users size={16} /> ผู้สมัคร: {(job.applicants || 0).toLocaleString('th-TH')} คน
-              &nbsp;&nbsp;•&nbsp;&nbsp; นักรีวิว: {job.reviewers} คน
-            </div>
-            <div className="owner mt-2" aria-label="จำนวนผู้เข้าชมประกาศ">
-              <Eye size={16} /> เปิดดูประกาศ:{' '}
-              {job.viewerCount == null ? '0 คน' : `${job.viewerCount.toLocaleString('th-TH')} คน`}
-            </div>
-            <small>{job.subtitle || 'ยังไม่ระบุ Campaign Subtitle'}</small>
-            <div className="prelist-meta">
-              <span>{job.brand}</span>
-            </div>
-          </div>
-        </article>
+        <JobPostingSummary
+          job={{ ...job, reviewers: reviewers.length }}
+          onEdit={() => navigate(`/job-postings/${job.id}/edit`)}
+        />
 
         <div className="detail-tabs">
           <button
@@ -320,7 +361,7 @@ export function JobPostingDetail() {
             className={mainTab === 'รายชื่อนักรีวิว' ? 'active' : ''}
             onClick={() => setMainTab('รายชื่อนักรีวิว')}
           >
-            <Users size={20} /> รายชื่อนักรีวิว ({job.reviewers})
+            <Users size={20} /> รายชื่อนักรีวิว ({reviewers.length})
           </button>
         </div>
 
@@ -438,7 +479,7 @@ export function JobPostingDetail() {
                 />{' '}
                 เลือกทั้งหมดในแท็บนี้
               </label>
-              <span>เลือก {eligibleSelectedIds.length} คน</span>
+              <span>(เลือก {eligibleSelectedIds.length} คน)</span>
               {eligibleSelectedIds.length > 0 && (
                 <button
                   className="secondary-button"
@@ -451,35 +492,41 @@ export function JobPostingDetail() {
                 </button>
               )}
               <div
-                style={{
-                  display: 'flex',
-                  gap: '8px',
-                }}
+                className="reviewer-selection-actions"
+                style={{ flexGrow: 1, display: 'flex', gap: '8px', justifyContent: 'flex-end' }}
               >
+                {activeTab === 'ทีมงานเลือกแล้ว' && (
+                  <button
+                    className="primary"
+                    disabled={!eligibleSelectedIds.length}
+                    onClick={exportSelectedCsv}
+                  >
+                    Export CSV ({eligibleSelectedIds.length})
+                  </button>
+                )}
                 <button
                   className="danger"
                   disabled={!eligibleSelectedIds.length}
-                  onClick={() => bulkMakeDecision('Reject')}
+                  onClick={() => setConfirmDecision({ type: 'bulk', action: 'Reject' })}
                 >
                   <X weight="bold" /> Reject ({eligibleSelectedIds.length})
                 </button>
                 <button
                   className="primary"
                   disabled={!eligibleSelectedIds.length}
-                  onClick={() => bulkMakeDecision('Accept')}
+                  onClick={() => setConfirmDecision({ type: 'bulk', action: 'Accept' })}
                 >
                   <Check weight="bold" /> Accept ({eligibleSelectedIds.length})
                 </button>
               </div>
               <span role="status">{bulkNotice}</span>
             </div>
-            {!visibleReviewers.length && (
+            {!visibleReviewers.length ? (
               <div className="empty-state">
                 <Users size={32} />
                 <h3>ไม่มีนักรีวิวในสถานะนี้</h3>
               </div>
-            )}
-            {viewMode === 'list' ? (
+            ) : viewMode === 'list' ? (
               <table
                 style={{
                   width: '100%',
@@ -520,7 +567,7 @@ export function JobPostingDetail() {
                         fontSize: '14px',
                       }}
                     >
-                      โปรไฟล์นักรีวิว
+                      นักรีวิว
                     </th>
                     <th
                       style={{
@@ -530,7 +577,7 @@ export function JobPostingDetail() {
                         fontSize: '14px',
                       }}
                     >
-                      ที่มา
+                      ข้อมูลผู้ติดตาม
                     </th>
                     <th
                       style={{
@@ -540,7 +587,27 @@ export function JobPostingDetail() {
                         fontSize: '14px',
                       }}
                     >
-                      ผลเลือกลูกค้า
+                      ข้อมูลเชิงลึก
+                    </th>
+                    <th
+                      style={{
+                        padding: '16px',
+                        color: '#64748b',
+                        fontWeight: '600',
+                        fontSize: '14px',
+                      }}
+                    >
+                      ข้อมูลส่วนตัว
+                    </th>
+                    <th
+                      style={{
+                        padding: '16px',
+                        color: '#64748b',
+                        fontWeight: '600',
+                        fontSize: '14px',
+                      }}
+                    >
+                      ผลงาน
                     </th>
                     <th
                       style={{
@@ -555,7 +622,7 @@ export function JobPostingDetail() {
                   </tr>
                 </thead>
                 <tbody>
-                  {visibleReviewers.map((item) => (
+                  {paginatedReviewers.map((item) => (
                     <tr
                       key={item.id}
                       style={{
@@ -575,18 +642,8 @@ export function JobPostingDetail() {
                           onChange={() => toggleReviewer(item.id)}
                         />
                       </td>
-                      <td
-                        style={{
-                          padding: '16px',
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px',
-                          }}
-                        >
+                      <td style={{ padding: '16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                           <img
                             src={item.images[0]}
                             style={{
@@ -598,20 +655,38 @@ export function JobPostingDetail() {
                             alt=""
                           />
                           <div>
-                            <button className="reviewer-username" onClick={() => setProfile(item)}>
-                              {item.username}
-                            </button>
-                            {decisionLabel(item)}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <button
+                                className="reviewer-username"
+                                onClick={() => setProfile(item)}
+                              >
+                                {item.username}
+                              </button>
+                              <span
+                                style={{
+                                  fontSize: '11px',
+                                  fontWeight: '700',
+                                  padding: '2px 6px',
+                                  borderRadius: '4px',
+                                  background: item.sourceIndex % 2 === 0 ? '#e0e7ff' : '#f1f5f9',
+                                  color: item.sourceIndex % 2 === 0 ? '#3730a3' : '#475569',
+                                }}
+                              >
+                                {item.sourceIndex % 2 === 0 ? 'สมัครเอง' : 'เพิ่มโดยทีมงาน'}
+                              </span>
+                            </div>
                             <div
                               style={{
                                 display: 'flex',
                                 gap: '8px',
                                 marginTop: '4px',
+                                alignItems: 'center',
                               }}
                             >
                               {item.platform === 'instagram' && <InstagramLogo color="#E1306C" />}
                               {item.platform === 'tiktok' && <TiktokLogo />}
                               {item.platform === 'facebook' && <FacebookLogo color="#1877F2" />}
+                              {decisionLabel(item)}
                             </div>
                           </div>
                         </div>
@@ -619,85 +694,77 @@ export function JobPostingDetail() {
                       <td
                         style={{
                           padding: '16px',
+                          color: '#414141',
+                          fontSize: '13px',
+                          fontWeight: '600',
                         }}
                       >
-                        <span
-                          style={{
-                            background: item.sourceIndex % 2 === 0 ? '#e0e7ff' : '#f1f5f9',
-                            color: item.sourceIndex % 2 === 0 ? '#3730a3' : '#475569',
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            fontSize: '12px',
-                            fontWeight: '600',
-                          }}
-                        >
-                          {item.sourceIndex % 2 === 0 ? 'สมัครเอง' : 'เพิ่มโดยทีมงาน'}
-                        </span>
-                      </td>
-                      <td
-                        style={{
-                          padding: '16px',
-                        }}
-                      >
-                        {decisionFor(item)?.status === 'Reject' ? (
-                          <span
-                            style={{
-                              color: '#dc2626',
-                              fontWeight: '600',
-                            }}
-                          >
-                            Reject — ไม่ส่ง Sale
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <User weight="fill" size={14} /> {item.followers}
                           </span>
-                        ) : customerSelected(item) ? (
-                          <span
-                            style={{
-                              color: '#16a34a',
-                              fontWeight: '600',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            <CheckCircle weight="fill" /> ลูกค้าเลือกแล้ว
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Heart weight="fill" size={14} /> {item.likes}
                           </span>
-                        ) : (
-                          <span
-                            style={{
-                              color: '#64748b',
-                              fontWeight: '500',
-                            }}
-                          >
-                            รอส่งให้ Sale นำเสนอ
-                          </span>
-                        )}
-                      </td>
-                      <td
-                        style={{
-                          padding: '16px',
-                        }}
-                      >
-                        {decisionActions(item)}
-                        <div
-                          style={{
-                            display: 'flex',
-                            gap: '8px',
-                            marginTop: '8px',
-                          }}
-                        >
-                          {decisionFor(item)?.status === 'Accept' && !decisionFor(item)?.sentBy && (
-                            <button
-                              className="primary"
-                              style={{
-                                padding: '6px 12px',
-                                fontSize: '13px',
-                              }}
-                              onClick={() => sendToSales(item)}
-                            >
-                              เลือกส่ง Sale
-                            </button>
-                          )}
                         </div>
                       </td>
+                      <td
+                        style={{
+                          padding: '16px',
+                          color: '#414141',
+                          fontSize: '13px',
+                          fontWeight: '600',
+                        }}
+                      >
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span style={{ display: 'flex', gap: '4px' }}>
+                            <span style={{ color: '#8793a5' }}>Engage Lv:</span> {item.engageLv}
+                          </span>
+                          <span style={{ display: 'flex', gap: '4px' }}>
+                            <span style={{ color: '#8793a5' }}>Est. Reach:</span> {item.estReach}
+                          </span>
+                        </div>
+                      </td>
+                      <td
+                        style={{
+                          padding: '16px',
+                          color: '#414141',
+                          fontSize: '13px',
+                          fontWeight: '600',
+                        }}
+                      >
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            {item.gender === 'MALE' ? (
+                              <GenderMale weight="bold" size={14} />
+                            ) : (
+                              <GenderFemale weight="bold" size={14} />
+                            )}{' '}
+                            {item.gender}
+                          </span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Cake weight="fill" size={14} /> {item.age} ปี
+                          </span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <div style={{ display: 'flex', gap: '2px' }}>
+                            {item.images.slice(0, 3).map((img, idx) => (
+                              <img
+                                key={idx}
+                                src={img}
+                                alt=""
+                                style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                              />
+                            ))}
+                          </div>
+                          <span style={{ fontSize: '12px', fontWeight: '600', color: '#414141' }}>
+                            Reviewed: {item.reviewed}
+                          </span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '16px' }}>{decisionActions(item)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -710,7 +777,7 @@ export function JobPostingDetail() {
                   gap: '24px',
                 }}
               >
-                {visibleReviewers.map((item) => (
+                {paginatedReviewers.map((item) => (
                   <div
                     key={item.id}
                     className={`job-reviewer-card ${selectedReviewerIds.includes(item.id) ? 'is-selected' : ''}`}
@@ -932,35 +999,6 @@ export function JobPostingDetail() {
                             {item.estReach}
                           </span>
                         </div>
-                        <div
-                          style={{
-                            display: 'flex',
-                            gap: '6px',
-                          }}
-                        >
-                          <span
-                            style={{
-                              color: '#8793a5',
-                              width: '110px',
-                            }}
-                          >
-                            ผลเลือกลูกค้า :
-                          </span>
-                          <span
-                            style={{
-                              fontWeight: '700',
-                              color: item.sourceIndex % 2 === 0 ? '#16a34a' : '#64748b',
-                            }}
-                          >
-                            {decisionFor(item)?.status === 'Reject'
-                              ? 'Reject — ไม่ส่ง Sale'
-                              : decisionFor(item)?.sentBy
-                                ? 'ส่ง Sale แล้ว'
-                                : customerSelected(item)
-                                  ? 'ลูกค้าเลือกแล้ว'
-                                  : 'รอ Buyer / PM เลือก'}
-                          </span>
-                        </div>
                       </div>
                     </div>
                     {(!decisionFor(item) ||
@@ -970,15 +1008,33 @@ export function JobPostingDetail() {
                         {decisionActions(item)}
                       </div>
                     )}
-                    {decisionFor(item)?.status === 'Accept' && !decisionFor(item)?.sentBy && (
-                      <div className="reviewer-card-footer">
-                        <button className="primary" onClick={() => sendToSales(item)}>
-                          เลือกส่ง Sale
-                        </button>
-                      </div>
-                    )}
                   </div>
                 ))}
+              </div>
+            )}
+            {totalPages > 1 && (
+              <div className="pagination" style={{ marginTop: '32px' }}>
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                >
+                  ‹
+                </button>
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <button
+                    key={i + 1}
+                    className={currentPage === i + 1 ? 'selected' : ''}
+                    onClick={() => setCurrentPage(i + 1)}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                >
+                  ›
+                </button>
               </div>
             )}
           </div>
@@ -987,126 +1043,162 @@ export function JobPostingDetail() {
       {addMode && (
         <div className="modal-backdrop" onClick={() => setAddMode(null)}>
           <section
-            className="reviewer-profile-modal reviewer-add-modal"
+            className="posting-save-dialog"
             role="dialog"
             aria-modal="true"
             aria-label="เพิ่มนักรีวิว"
             onClick={(event) => event.stopPropagation()}
           >
             <button
-              className="secondary-button"
+              type="button"
+              className="broadcast-close"
               onClick={() => setAddMode(null)}
               aria-label="ปิดเพิ่มนักรีวิว"
             >
-              <X />
+              <X size={22} />
             </button>
-            <h2>เพิ่มนักรีวิว</h2>
-            <p>เลือกเพิ่มทีละคน หรืออัปโหลดรายชื่อหลายคนพร้อมกัน</p>
-            <div className="reviewer-add-tabs">
-              {[
-                ['single', 'เพิ่มทีละคน'],
-                ['bulk', 'Bulk Upload'],
-              ].map(([mode, label]) => (
-                <button
-                  key={mode}
-                  className={addMode === mode ? 'primary' : 'secondary-button'}
-                  onClick={() => {
-                    setAddMode(mode);
-                    setAddError('');
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            {addMode === 'single' ? (
-              <div className="reviewer-add-fields">
-                <label>
-                  Platform
-                  <select
-                    value={newPlatform}
-                    onChange={(event) => setNewPlatform(event.target.value)}
-                  >
-                    <option value="instagram">Instagram</option>
-                    <option value="tiktok">TikTok</option>
-                    <option value="facebook">Facebook</option>
-                  </select>
-                </label>
-                <label>
-                  Username
-                  <input
-                    value={newUsername}
-                    onChange={(event) => setNewUsername(event.target.value)}
-                    placeholder="เช่น creator.name"
-                  />
-                </label>
-              </div>
-            ) : (
-              <div className="reviewer-add-fields">
-                <p>อัปโหลด CSV ที่บันทึกจาก Excel หรือวางข้อมูล 2 คอลัมน์: username, platform</p>
-                <a
-                  download="reviewers-template.csv"
-                  href={
-                    'data:text/csv;charset=utf-8,' +
-                    encodeURIComponent('username,platform\ncreator.name,instagram\n')
-                  }
-                >
-                  ดาวน์โหลดไฟล์ตัวอย่าง CSV
-                </a>
-                <label>
-                  ไฟล์รายชื่อ (.csv / .tsv)
-                  <input
-                    type="file"
-                    accept=".csv,.tsv,text/csv,text/tab-separated-values"
-                    onChange={async (event) => {
-                      const file = event.target.files?.[0];
-                      if (file) {
-                        setBulkText(await file.text());
-                        setUploadName(file.name);
-                        setAddError('');
-                      }
+            <h2 className="posting-save-title">เพิ่มนักรีวิว</h2>
+
+            <div style={{ marginTop: '16px' }}>
+              <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '16px' }}>
+                เลือกเพิ่มทีละคน หรืออัปโหลดรายชื่อหลายคนพร้อมกัน
+              </p>
+
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '8px',
+                  background: '#f1f5f9',
+                  padding: '4px',
+                  borderRadius: '8px',
+                  marginBottom: '24px',
+                }}
+              >
+                {[
+                  ['single', 'เพิ่มทีละคน'],
+                  ['bulk', 'Bulk Upload'],
+                ].map(([mode, label]) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    style={{
+                      flex: 1,
+                      padding: '6px 16px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      background: addMode === mode ? 'white' : 'transparent',
+                      boxShadow: addMode === mode ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                      color: addMode === mode ? '#1a202c' : '#64748b',
+                      fontWeight: addMode === mode ? '600' : '500',
+                      cursor: 'pointer',
                     }}
-                  />
-                </label>
-                {uploadName && <small>{uploadName}</small>}
-                <label>
-                  วางรายชื่อ
-                  <textarea
-                    value={bulkText}
-                    onChange={(event) => {
-                      setBulkText(event.target.value);
+                    onClick={() => {
+                      setAddMode(mode);
                       setAddError('');
                     }}
-                    placeholder={'username,platform\ncreator.name,instagram'}
-                  />
-                </label>
-                <small>Platform รองรับ instagram, tiktok, facebook</small>
-                {bulkRows.length > 0 && (
-                  <div className="reviewer-upload-preview">
-                    <strong>ตัวอย่างรายชื่อ ({bulkRows.length} คน)</strong>
-                    {bulkRows.slice(0, 5).map((row, index) => (
-                      <p key={index}>
-                        {row.username || 'ไม่มี Username'} · {row.platform || 'ไม่มี Platform'}
-                      </p>
-                    ))}
-                    {bulkRows.length > 5 && <small>และอีก {bulkRows.length - 5} คน</small>}
-                  </div>
-                )}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
-            )}
-            {addError && (
-              <p className="field-error" role="alert">
-                {addError}
-              </p>
-            )}
-            <div className="reviewer-add-tabs">
-              <button className="secondary-button" onClick={() => setAddMode(null)}>
+
+              {addMode === 'single' ? (
+                <div className="reviewer-add-fields">
+                  <label>
+                    Platform
+                    <select
+                      value={newPlatform}
+                      onChange={(event) => setNewPlatform(event.target.value)}
+                    >
+                      <option value="instagram">Instagram</option>
+                      <option value="tiktok">TikTok</option>
+                      <option value="facebook">Facebook</option>
+                    </select>
+                  </label>
+                  <label>
+                    Username
+                    <input
+                      value={newUsername}
+                      onChange={(event) => setNewUsername(event.target.value)}
+                      placeholder="เช่น creator.name"
+                    />
+                  </label>
+                </div>
+              ) : (
+                <div className="reviewer-add-fields">
+                  <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>
+                    อัปโหลด CSV ที่บันทึกจาก Excel หรือวางข้อมูล 2 คอลัมน์: username, platform
+                  </p>
+                  <a
+                    download="reviewers-template.csv"
+                    href={
+                      'data:text/csv;charset=utf-8,' +
+                      encodeURIComponent('username,platform\ncreator.name,instagram\n')
+                    }
+                    style={{ color: '#6941c6', fontSize: '14px', fontWeight: '500' }}
+                  >
+                    ดาวน์โหลดไฟล์ตัวอย่าง CSV
+                  </a>
+                  <label>
+                    ไฟล์รายชื่อ (.csv / .tsv)
+                    <input
+                      type="file"
+                      accept=".csv,.tsv,text/csv,text/tab-separated-values"
+                      onChange={async (event) => {
+                        const file = event.target.files?.[0];
+                        if (file) {
+                          setBulkText(await file.text());
+                          setUploadName(file.name);
+                          setAddError('');
+                        }
+                      }}
+                    />
+                  </label>
+                  {uploadName && <small style={{ color: '#64748b' }}>{uploadName}</small>}
+                  <label>
+                    วางรายชื่อ
+                    <textarea
+                      value={bulkText}
+                      onChange={(event) => {
+                        setBulkText(event.target.value);
+                        setAddError('');
+                      }}
+                      placeholder={'username,platform\ncreator.name,instagram'}
+                    />
+                  </label>
+                  <small style={{ color: '#64748b' }}>
+                    Platform รองรับ instagram, tiktok, facebook
+                  </small>
+                  {bulkRows.length > 0 && (
+                    <div className="reviewer-upload-preview">
+                      <strong>ตัวอย่างรายชื่อ ({bulkRows.length} คน)</strong>
+                      {bulkRows.slice(0, 5).map((row, index) => (
+                        <p key={index} style={{ margin: '4px 0', fontSize: '13px' }}>
+                          {row.username || 'ไม่มี Username'} · {row.platform || 'ไม่มี Platform'}
+                        </p>
+                      ))}
+                      {bulkRows.length > 5 && (
+                        <small style={{ color: '#64748b' }}>และอีก {bulkRows.length - 5} คน</small>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+              {addError && (
+                <p className="field-error" role="alert" style={{ marginTop: '12px' }}>
+                  {addError}
+                </p>
+              )}
+            </div>
+
+            <footer className="posting-save-actions">
+              <button type="button" className="secondary-button" onClick={() => setAddMode(null)}>
                 ยกเลิก
               </button>
-              <button className="primary" onClick={saveReviewers}>
+              <button type="button" className="primary" onClick={saveReviewers}>
                 เพิ่ม{addMode === 'bulk' ? ` ${bulkRows.length} คน` : 'นักรีวิว'}
               </button>
-            </div>
+            </footer>
           </section>
         </div>
       )}
@@ -1140,6 +1232,61 @@ export function JobPostingDetail() {
               Engagement: {profile.engageLv} · Reviewed: {profile.reviewed} · Est. Reach:{' '}
               {profile.estReach}
             </p>
+          </section>
+        </div>
+      )}
+      {confirmDecision && (
+        <div className="modal-backdrop" onClick={() => setConfirmDecision(null)}>
+          <section
+            className="posting-save-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirm-decision-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="broadcast-close"
+              onClick={() => setConfirmDecision(null)}
+              aria-label="ปิด"
+            >
+              <X size={22} />
+            </button>
+            <h2 id="confirm-decision-title" className="posting-save-title">
+              ยืนยันการทำรายการ
+            </h2>
+            <div className="posting-save-preview">
+              <p>
+                คุณต้องการ <strong>{confirmDecision.action}</strong> นักรีวิว
+                {confirmDecision.type === 'bulk'
+                  ? ` จำนวน ${eligibleSelectedIds.length} คน`
+                  : ` จำนวน 1 คน`}{' '}
+                ใช่หรือไม่?
+              </p>
+            </div>
+            <footer className="posting-save-actions">
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => setConfirmDecision(null)}
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                className="primary"
+                onClick={() => {
+                  if (confirmDecision.type === 'bulk') {
+                    executeBulkDecision(confirmDecision.action);
+                  } else {
+                    decide(confirmDecision.id, confirmDecision.action);
+                  }
+                  setConfirmDecision(null);
+                }}
+              >
+                ยืนยัน
+              </button>
+            </footer>
           </section>
         </div>
       )}

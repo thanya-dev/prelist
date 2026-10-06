@@ -1,14 +1,14 @@
-import { Routes, Route } from 'react-router-dom';
+import { Navigate, Routes, Route } from 'react-router-dom';
 import { ProjectListPage } from '../pages/ProjectListPage.jsx';
 import { BriefFormPage } from '../pages/BriefFormPage.jsx';
 import { BriefListPage } from '../pages/BriefListPage.jsx';
 import { BriefDetailPage } from '../pages/BriefDetailPage.jsx';
+import { CampaignFormPage } from '../pages/CampaignFormPage.jsx';
 import { CampaignDetailPage } from '../pages/CampaignDetailPage.jsx';
 import { ProjectDetailPage } from '../pages/ProjectDetailPage.jsx';
-import { ProjectFormPage } from '../pages/ProjectFormPage.jsx';
 import { JobPostingFormPage } from '../pages/JobPostingFormPage.jsx';
 import { JobPostingDetailPage } from '../pages/JobPostingDetailPage.jsx';
-export function AppRoutes({ projects, navigate, onOpenProject, onEditProject, onSaveProject }) {
+export function AppRoutes({ projects, navigate, onOpenProject, onEditProject }) {
   return (
     <Routes>
       <Route
@@ -25,16 +25,7 @@ export function AppRoutes({ projects, navigate, onOpenProject, onEditProject, on
       <Route path="/briefs" element={<BriefListPage />} />
       <Route path="/briefs/create" element={<BriefFormPage key="create-brief" />} />
       <Route path="/briefs/:id/edit" element={<BriefFormPage key={window.location.pathname} />} />
-      <Route
-        path="/projects/create"
-        element={
-          <ProjectFormPage
-            projects={projects}
-            onBack={() => navigate('/')}
-            onSave={(p) => onSaveProject(p, false)}
-          />
-        }
-      />
+      <Route path="/projects/create" element={<Navigate to="/" replace />} />
       <Route
         path="/projects/:id"
         element={
@@ -45,10 +36,7 @@ export function AppRoutes({ projects, navigate, onOpenProject, onEditProject, on
           />
         }
       />
-      <Route
-        path="/projects/:id/edit"
-        element={<ProjectFormPage projects={projects} onSave={(p) => onSaveProject(p, true)} />}
-      />
+      <Route path="/projects/:id/edit" element={<Navigate to="/" replace />} />
       <Route
         path="/briefs/:id"
         element={
@@ -56,8 +44,13 @@ export function AppRoutes({ projects, navigate, onOpenProject, onEditProject, on
         }
       />
       <Route
-        path="/campaigns/page-promotion-facebook"
+        path="/campaigns/:id"
         element={<CampaignDetailPage onBack={() => navigate('/projects/PRJ2026090022')} />}
+      />
+      <Route path="/campaigns/create" element={<CampaignFormPage key="create-campaign" />} />
+      <Route
+        path="/campaigns/:id/edit"
+        element={<CampaignFormPage key={window.location.pathname} />}
       />
       <Route path="/job-postings/create" element={<JobPostingFormPage />} />
       <Route

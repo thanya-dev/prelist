@@ -1,13 +1,21 @@
 export const SEED_PROJECTS = [
   {
     id: 'PRJ2026090022',
+    briefNumbers: ['NRI202609058'],
     quote: 'QO2026090022',
+    quotations: ['QO2026090022'],
+    quotationMetadata: [{ createdAt: '2026-09-28T06:32:00Z', createdBy: 'aareeya@buddyreview.co' }],
+    createdAt: '2026-09-28T06:32:00Z',
+    createdBy: 'aareeya@buddyreview.co',
+    updatedAt: '2026-09-28T07:47:00Z',
+    updatedBy: 'nattaya@buddyreview.co',
     name: 'Page Promotion Sale Here',
     owner: 'aareeya@buddyreview.co',
     tone: 'mascot',
     brand: 'Page Promotion',
     status: 'On Going',
-    image: '/assets/page-promotion.jpg',
+    image:
+      'https://s3.ap-southeast-1.amazonaws.com/bdb-parse-file/public/project/profile/cbvpbV1FtT-1790576864553.jpg',
   },
   {
     id: 'PRJ2026090021',

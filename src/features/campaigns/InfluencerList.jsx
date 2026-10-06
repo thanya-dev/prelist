@@ -268,8 +268,8 @@ export function InfluencerList() {
     </button>
   );
   return (
-    <section className="approved-panel">
-      <div className="approved-heading">
+    <section className="pt-8 pb-16 text-[#484848]">
+      <div className="flex items-center gap-3">
         <div
           style={{
             display: 'flex',
@@ -277,7 +277,7 @@ export function InfluencerList() {
             gap: '16px',
           }}
         >
-          <h2>INFLUENCER LIST</h2>
+          <h2 className="m-0 mr-2 text-xl font-bold">INFLUENCER LIST</h2>
           <a
             className="reviewer-confirmed-link"
             style={{
@@ -296,79 +296,99 @@ export function InfluencerList() {
             ยืนยันรับงานแล้ว <ArrowSquareOut size={15} />
           </a>
         </div>
-        <button className="approved-icon purple" aria-label="List view">
-          <List weight="bold" />
+        <button
+          className="inline-flex items-center gap-1 text-sm bg-[#e9e6ff] text-[#6545ff] p-2 rounded hover:bg-[#d8d2ff] transition-colors"
+          aria-label="List view"
+        >
+          <List weight="bold" size={20} />
         </button>
         <button
-          className="approved-icon"
+          className="inline-flex items-center gap-1 text-sm text-[#7f8ca4] p-2 rounded hover:bg-[#f4f4f5] transition-colors"
           aria-label="Grid view"
           onClick={() => setNotice('แสดงรายชื่อในมุมมองตาราง')}
         >
-          <SquaresFour weight="fill" />
+          <SquaresFour weight="fill" size={20} />
         </button>
-        <button onClick={exportRows}>
+        <button
+          className="inline-flex items-center gap-2 text-sm text-[#7f8ca4] px-3 py-2 rounded border border-[#dce4ee] hover:bg-[#f4f4f5] transition-colors"
+          onClick={exportRows}
+        >
           <UploadSimple weight="fill" /> Export
         </button>
-        <button onClick={() => setNotice('External payment')}>
+        <button
+          className="inline-flex items-center gap-2 text-sm text-[#7f8ca4] px-3 py-2 rounded border border-[#dce4ee] hover:bg-[#f4f4f5] transition-colors"
+          onClick={() => setNotice('External payment')}
+        >
           <CurrencyDollar /> External payment
         </button>
         <button
-          className="primary approved-import"
+          className="ml-auto inline-flex items-center gap-2 text-sm font-semibold text-white bg-[#6545ff] px-5 py-2 rounded-lg hover:shadow-lg hover:-translate-y-[1px] transition-all"
           onClick={() => {
             setImportOpen(true);
             setImportError('');
           }}
         >
-          <UploadSimple /> Import Influencer
+          <UploadSimple size={18} /> Import Influencer
         </button>
         <button
-          className="primary"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-[#6545ff] px-5 py-2 rounded-lg hover:shadow-lg hover:-translate-y-[1px] transition-all"
           onClick={() => setNotice('เลือกนักรีวิวจากตารางเพื่อจัดการลิงก์โพสต์')}
         >
-          <LinkSimple /> Import post
+          <LinkSimple size={18} /> Import post
         </button>
       </div>
-      <div className="approved-totals">
+      <div className="grid grid-cols-3 gap-6 mt-4 mb-2">
         <div>
-          <strong>{31 + importedAccounts.length}</strong>
-          <span>
+          <strong className="block text-[28px] font-bold leading-tight">
+            {31 + importedAccounts.length}
+          </strong>
+          <span className="block text-sm leading-snug mt-1 text-[#7f8ca4]">
             TOTAL
             <br />
             ACCOUNT
           </span>
         </div>
         <div>
-          <strong>156,467</strong>
-          <span>
+          <strong className="block text-[28px] font-bold leading-tight">156,467</strong>
+          <span className="block text-sm leading-snug mt-1 text-[#7f8ca4]">
             TOTAL ESTIMATED
             <br />
             REACH
           </span>
         </div>
         <div>
-          <strong>9,124,022</strong>
-          <span>
+          <strong className="block text-[28px] font-bold leading-tight">9,124,022</strong>
+          <span className="block text-sm leading-snug mt-1 text-[#7f8ca4]">
             TOTAL ESTIMATED
             <br />
             FOLLOWER
           </span>
         </div>
       </div>
-      <p className="approved-platform-summary">
-        IG - <b>5</b> │ FB - <b>3</b> │ PAGE - <b>5</b> │ twitter - <b>4</b> │ yt - <b>4</b> │
-        tiktok - <b>7</b> │ lemon8 - <b>3</b>
+      <p className="mt-1 mb-6 text-sm text-[#7f8ca4]">
+        IG - <b className="text-[#273348]">5</b> │ FB - <b className="text-[#273348]">3</b> │ PAGE -{' '}
+        <b className="text-[#273348]">5</b> │ twitter - <b className="text-[#273348]">4</b> │ yt -{' '}
+        <b className="text-[#273348]">4</b> │ tiktok - <b className="text-[#273348]">7</b> │ lemon8
+        - <b className="text-[#273348]">3</b>
       </p>
-      <div className="approved-filters">
-        <div className="approved-column-picker">
-          <button className="approved-display" onClick={() => setColumnsOpen(!columnsOpen)}>
-            Display Columns <CaretDown />
+      <div className="px-3">
+        <div className="relative w-[210px]">
+          <button
+            className="w-full flex justify-between items-center p-3 border border-[#bbb] rounded text-sm font-semibold text-[#484848]"
+            onClick={() => setColumnsOpen(!columnsOpen)}
+          >
+            Display Columns <CaretDown className="text-[#6545ff]" />
           </button>
           {columnsOpen && (
-            <div className="approved-column-menu">
+            <div className="absolute z-10 top-[48px] bg-white p-4 shadow-lg w-[230px] max-h-[300px] overflow-auto border border-[#e5e7eb] rounded-md">
               {columnNames.slice(1).map((name) => (
-                <label key={name}>
+                <label
+                  key={name}
+                  className="flex items-center gap-2 mb-2 text-sm cursor-pointer hover:text-[#6545ff]"
+                >
                   <input
                     type="checkbox"
+                    className="accent-[#6545ff] w-4 h-4 cursor-pointer"
                     checked={!hiddenColumns.includes(name)}
                     onChange={() =>
                       setHiddenColumns((current) =>
@@ -384,12 +404,16 @@ export function InfluencerList() {
             </div>
           )}
         </div>
-        <div className="approved-platform-filters">
+        <div className="flex flex-wrap gap-4 mt-4 mb-6">
           {['Instagram', 'Facebook', 'FacebookPage', 'Twitter', 'Youtube', 'Tiktok', 'Lemon8'].map(
             (name) => (
-              <label key={name}>
+              <label
+                key={name}
+                className="flex items-center gap-2 text-sm cursor-pointer hover:text-[#6545ff]"
+              >
                 <input
                   type="checkbox"
+                  className="accent-[#6545ff] w-[18px] h-[18px] cursor-pointer"
                   checked={platforms.includes(name)}
                   onChange={() =>
                     setPlatforms((current) =>
@@ -404,17 +428,21 @@ export function InfluencerList() {
             ),
           )}
         </div>
-        <div className="approved-search-row">
-          <label className="campaign-search">
+        <div className="flex justify-between items-center gap-4">
+          <label className="flex items-center gap-2 p-2 bg-white border border-[#dce4ee] rounded-md w-full max-w-[320px] focus-within:border-[#6545ff] focus-within:ring-2 focus-within:ring-[#6545ff]/20 transition-all">
             <input
+              className="flex-1 border-none outline-none text-[#273348] placeholder-[#7f8ca4] text-sm px-2"
               placeholder="Search by Username"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
-            <MagnifyingGlass />
+            <MagnifyingGlass className="text-[#7f8ca4]" size={20} />
           </label>
-          <button className="primary" onClick={() => setNotice('อัปเดตความคิดเห็นเรียบร้อยแล้ว')}>
-            <LinkSimple /> Update comments
+          <button
+            className="flex items-center gap-2 bg-[#6545ff] text-white text-sm font-semibold py-2 px-6 rounded-md hover:shadow-lg hover:-translate-y-[1px] transition-all whitespace-nowrap"
+            onClick={() => setNotice('อัปเดตความคิดเห็นเรียบร้อยแล้ว')}
+          >
+            <LinkSimple size={18} /> Update comments
           </button>
         </div>
       </div>

@@ -1,29 +1,15 @@
-import { useState } from 'react';
-import { ImageSquare, X, Storefront, CaretDown, Check } from '@phosphor-icons/react';
-import { BRANDS } from '../../lib/brands.js';
+import { ImageSquare, X } from '@phosphor-icons/react';
 import { Field } from '../../components/ui/Field.jsx';
 
 export function CampaignBasicInformationFields({
+  isConfidential = false,
   name,
   subtitle,
-  brand,
   cover,
-  owner,
-  currentUser,
   onChange,
   errors,
   onCoverError,
 }) {
-  const [brandSearch, setBrandSearch] = useState(brand);
-  const [isBrandOpen, setIsBrandOpen] = useState(false);
-  const filteredBrands = BRANDS.filter((entry) =>
-    entry.name.toLowerCase().includes(brandSearch.toLowerCase()),
-  );
-  const handleChooseBrand = (entry) => {
-    onChange('brand', entry.name);
-    setBrandSearch(entry.name);
-    setIsBrandOpen(false);
-  };
   const handleUploadCover = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -40,6 +26,12 @@ export function CampaignBasicInformationFields({
   };
   return (
     <section className="form-card campaign-basic-panel" aria-label="Basic Information">
+      {isConfidential && (
+        <h2 className="m-0 mb-6 text-lg font-semibold leading-relaxed">
+          ข้อมูลที่แสดงสำหรับ <span className="text-[#3186d7]">นักรีวิวที่ผ่านการคัดเลือก</span>
+          เท่านั้น
+        </h2>
+      )}
       <div className="campaign-logo-field">
         <label htmlFor="campaign-logo-upload">
           โลโก้แบรนด์ <b>*</b>
@@ -81,7 +73,7 @@ export function CampaignBasicInformationFields({
         )}
       </div>
       <div className="flex flex-col gap-5">
-        <Field label="Campaign Title" required>
+        <Field label={isConfidential ? 'Confidential campaign Title' : 'Campaign Title'} required>
           <input
             value={name}
             onChange={(event) => onChange('name', event.target.value)}
@@ -93,7 +85,10 @@ export function CampaignBasicInformationFields({
             </small>
           )}
         </Field>
-        <Field label="Campaign Subtitle" required>
+        <Field
+          label={isConfidential ? 'Confidential Campaign Subtitle' : 'Campaign Subtitle'}
+          required
+        >
           <input
             value={subtitle}
             onChange={(event) => onChange('subtitle', event.target.value)}
@@ -104,61 +99,6 @@ export function CampaignBasicInformationFields({
               {errors.subtitle}
             </small>
           )}
-        </Field>
-      </div>
-      <div className="form-grid gap-6 mt-6 max-[760px]:gap-4">
-        <Field label="Brand" required>
-          <div className="autocomplete">
-            <div className="input-with-icon">
-              <Storefront />
-              <input
-                value={brandSearch}
-                onFocus={() => setIsBrandOpen(true)}
-                onChange={(event) => {
-                  setBrandSearch(event.target.value);
-                  onChange('brand', '');
-                  setIsBrandOpen(true);
-                }}
-                placeholder="ค้นหา Brand ในระบบ"
-              />
-              <CaretDown />
-            </div>
-            {isBrandOpen && (
-              <div className="autocomplete-menu">
-                {filteredBrands.length ? (
-                  filteredBrands.map((entry) => (
-                    <button
-                      type="button"
-                      key={entry.name}
-                      onMouseDown={(event) => event.preventDefault()}
-                      onClick={() => handleChooseBrand(entry)}
-                    >
-                      {entry.image ? <img src={entry.image} alt="" /> : <Storefront />}
-                      <span>{entry.name}</span>
-                      {brand === entry.name && <Check />}
-                    </button>
-                  ))
-                ) : (
-                  <div className="no-result">ไม่พบ Brand</div>
-                )}
-              </div>
-            )}
-          </div>
-        </Field>
-        <Field label="Owner / Assign Buyer" required>
-          <select value={owner} onChange={(event) => onChange('owner', event.target.value)}>
-            {[
-              ...new Set([
-                owner,
-                currentUser.email,
-                'thanya@buddyreview.co',
-                'nattaya@buddyreview.co',
-                'itsariya@buddyreview.co',
-              ]),
-            ].map((email) => (
-              <option key={email}>{email}</option>
-            ))}
-          </select>
         </Field>
       </div>
     </section>

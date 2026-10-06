@@ -8,10 +8,15 @@ export function useReviewerDecisions(jobId) {
     }
   });
   const decide = (reviewerId, status) => {
+    const currentStatus = decisions[`${jobId}:${reviewerId}`]?.status;
+    let nextStatus = status;
+    if (status === 'Accept') {
+      nextStatus = !currentStatus || currentStatus === 'pending' ? 'TeamAccept' : 'Accept';
+    }
     const next = {
       ...decisions,
       [`${jobId}:${reviewerId}`]: {
-        status,
+        status: nextStatus,
         by: 'thanya@buddyreview.co',
       },
     };

@@ -1,5 +1,9 @@
 # Prototype Instructions
 
+Brief Detail places recruitment postings and Product Option in separate tabs below the persistent Brief summary. Default to ประกาศหานักรีวิว; show posting/product counts on tabs. Preserve calendar month, view, search and status filters while switching tabs. Empty Product Option shows ยังไม่มีสินค้า with เพิ่มสินค้า linking to Brief Edit.
+
+Job Posting campaign type options are stacked vertically in this order: Normal, Confidential campaign, Private campaign. Use the supplied Thai descriptions and blue selected radio-card styling. Persist all three values (`normal`, `confidential`, `private`) through draft/save/edit and display the saved type on Detail.
+
 Run the local server yourself and open the preview in the browser available to this environment. Do not give the user server-start instructions when you can run it.
 
 Before making substantial visual changes, use the Product Design plugin's `get-context` skill when the visual source is unclear or no longer matches the current goal. When the user gives durable prototype-specific design feedback, preferences, or decisions, record them in `AGENTS.md`.
@@ -44,7 +48,7 @@ Align the Export Excel button to the right edge of the floating reviewer selecti
 
 The floating reviewer toolbar has one primary Export Excel action only. Do not relabel secondary actions as Export Excel using CSS pseudo-elements.
 
-Reviewer export is restricted to customer-selected reviewers only. Disable other checkboxes and restrict select-all and export to eligible reviewers.
+Reviewer export is restricted to team-selected reviewers only. Disable other checkboxes and restrict select-all and export to eligible reviewers.
 
 Campaign Task > APPROVED follows the supplied Buddy Review screenshot: Approved Influencers heading, account/reach/follower totals, platform breakdown and filters, display columns, username search, Import post/Update comments actions, and a dense horizontally scrollable account table with workflow columns.
 
@@ -186,7 +190,7 @@ Platform required fields show a circular social media logo before each platform 
 
 Job Posting Creator Criteria follows the supplied campaign-create reference: stacked white Goals (Target influencer and Target post), Target group, reviewer gender checkboxes and paired age/follower MIN/MAX inputs, two-column platform cards with circular logos and scope hints, and grouped scope radio options with blue selected states. Apply this only to Job Posting forms; keep Project forms and Basic Information unchanged. Preserve all criteria when saving drafts and editing.
 
-Job Posting forms place required campaign type at the top: Normal (default) and Confidential campaign, with descriptions and blue selected radio cards matching the supplied reference. Basic Information is the final section: centered square brand logo with upload/remove, full-width Campaign Title (existing name) and Campaign Subtitle, followed by editable Brand and Owner / Assign Buyer. Persist campaignType and subtitle with draft/edit data; drafts still require only the title. This supersedes keeping Job Posting Basic Information unchanged; Brief and Project forms remain unchanged.
+Job Posting forms place required campaign type at the top: Normal (default) and Confidential campaign, with descriptions and blue selected radio cards matching the supplied reference. Basic Information is the final section: centered square brand logo with upload/remove, full-width Campaign Title (existing name) and Campaign Subtitle, followed by editable Brand and Owner / Assign Buyer. Persist campaignType and subtitle with draft/edit data; drafts still require only the title. This supersedes keeping Job Posting Basic Information unchanged; Brief and Project forms remain unchanged. The Job Posting form wrapper uses a centered layout with max-width: 800px, similar to Campaign Step 1.
 
 Job Posting forms use the supplied Thai campaign-period layout: heading ระยะเวลาของแคมเปญ and its helper text, recruitment dates first, campaign dates second, paired labeled inputs with a dash and calendar icons. Display dates as day / month / Buddhist year while preserving ISO date values in saved data. This supersedes the previous Working / Event Date above Application Period order.
 
@@ -199,3 +203,123 @@ Prototype announcement sample counts use a 10% viewer-to-applicant conversion (v
 Job Posting Detail shows the saved fields from the current Job Posting form, including campaign type, complete Creator Criteria, campaign periods, compensation/benefit, reference link, and Basic Information. Use the saved reviewer target and show missing information explicitly rather than substituting invented sample values.
 
 Job Posting Detail and Job Posting forms follow the existing Buddy Review design system: Bai Jamjuree typography, purple primary actions, consistent section headings, borders and 4px spacing. Keep the required blue selected campaign/criteria options and scope visual changes to these posting screens.
+
+All pages use fluid content widths that expand with the viewport, without desktop maximum-width caps. Preserve responsive outer gutters, sidebar space, and readable internal layouts; the floating reviewer toolbar follows the main content width. Modals retain bounded widths.
+
+Project Detail does not show the Lifecycle card or its numbered status stepper. Keep the project summary status badge. Project Detail does not show status-change buttons, including “เปลี่ยนเป็น On Going”.
+
+Project Detail displays brand logo, project name, Project ID, Assign PM, all quotation numbers (first is Main) with saved addition metadata, all Brief numbers and Groups, Goal (Target Influencer, Target Post, Target Reach), Budget (Total project cost, Contingency cost), and creation/update metadata. Keep the existing Buddy Review styles, display zero values, and show missing saved data explicitly.
+
+Project Create and Edit actions open https://manage.buddyreview.co/project/create/uGvkPwRGps in a new tab. Remove local Project Create/Edit forms; legacy form routes return to the Project list. Project Detail continues showing saved project information. This supersedes prior local Project form requirements.
+
+Campaign Create/Edit follows the four supplied campaign-create screenshots: Setting → Campaign info → Brief → Payment offer & Reward. Setting has OP, Group, campaign status/type, periods, workflow, demographic toggles. Steps 2–4 show a settings preview beside the form. Keep campaign form data separate from job postings, persist edits, and return to Campaign Detail after save. Use blue selected options and blue wizard navigation as shown in these campaign references.
+
+Campaign Step 1 can select a source job posting by Brief ID. Import and persist a per-campaign source snapshot; show its identity in the form/preview and Campaign Detail. Only overlapping posting fields are read-only (campaign type, title/subtitle/logo, Creator Criteria, recruitment/campaign periods, general brief and benefit). Keep campaign-only settings editable. Missing source values remain missing rather than using invented defaults. The selected-reviewer Brief section (file/link) remains editable. Persist the source association and read-only behavior when reopening Edit. Selecting another posting replaces inherited values; clearing the source restores the campaign's previous values.
+
+Campaign Create/Edit now uses two steps: เลือกประกาศต้นทาง → ตั้งค่าแคมเปญเพิ่มเติม. The second step shows editable campaign-only fields, selected-reviewer Brief and points; inherited posting data is collapsed under ดูข้อมูลจากประกาศ with a lock icon, not repeated as disabled form inputs. Additional optional campaign settings are collapsed. Editing a campaign with a source posting opens directly on step 2, with an explicit change-source action. Campaigns without a source can still be entered manually in the same two-step flow. This supersedes the earlier four-step form layout.
+
+Campaign source selection has no Brief ID search/input. Offer only Brief IDs saved by PM on the parent Project (`briefNumbers` / legacy `briefNumber`), then postings linked to the selected Brief. Automatically select a sole project Brief. If the Project has no Brief ID, show a missing-project-Brief message instead of offering unrelated global Brief IDs. Preserve saved source snapshots on Edit.
+
+Campaign ดูข้อมูลจากประกาศ reuses JobPostingSummary and JobPostingInformation from Job Posting Detail, including the same cards, field layout, icons, platform logos and date formatting. Render the saved source posting snapshot without Campaign edits; keep this view read-only and preserve the collapsed panel. The shared summary only shows an edit action when explicitly given onEdit.
+
+Campaign Step 1 is Setting / ตั้งค่าแคมเปญ and contains posting selection plus Assign OP, Group, campaign status, and follower-demographic toggles, stacked vertically. Step 2 has a Preview campaign setting card on the left using current saved/form values and stacked editable fields on the right. Retain the two-step flow, shared read-only posting panel and editable selected-reviewer Brief. This supersedes placing OP/Group/status/demographics on step 2 and its two-column editable-card grid.
+
+Campaign Step 1 form shell is centered with max-width: 800px (an explicit exception to the fluid-width rule); Step 2 stays fluid. Campaign action footer is sticky at the bottom of the viewport, with an opaque background, stacking priority and mobile safe-area spacing. Keep footer in document flow so the final content remains reachable.
+
+Campaign Step 2 is labeled รายละเอียดงานสำหรับนักรีวิว with helper text ระบุขั้นตอนส่งงาน บรีฟ และแต้มรางวัลสำหรับแคมเปญนี้.
+
+On Campaign Step 2, source posting identity (name, Brief/Job IDs), change-source action and shared read-only ดูข้อมูลจากประกาศ panel belong inside Preview campaign setting. Keep editable workflow, selected-reviewer Brief and reward fields in the right form column.
+
+Campaign Step 2 Preview campaign setting now shows only the source posting name as a link to its Job Posting Detail and the Brief ID · Job ID line. Remove other settings, change-source action and expandable posting details from this Preview. This supersedes the earlier expanded Preview contents; source selection and shared posting details in Step 1 remain available.
+
+Correction: only the posting portion of Campaign Preview is compact (linked posting title and actual Brief ID · Job ID); retain Project, OP, Group, status/type, periods, workflow and demographics beneath it. Step 2 helper text is ระบุข้อมูลสำหรับทำงาน. This supersedes removing all other Preview settings.
+
+Campaign Step 2 shows Product option, shipping, Do, Don’t, example images and example videos openly as sibling cards alongside the reward section. Remove the ตั้งค่าเพิ่มเติม (ไม่บังคับ) accordion; these fields must not be hidden.
+
+Campaign Preview labels its source posting section ประกาศ using the same dt/dd styling as Project and Assign OP. Step 1 has editable ชื่อแคมเปญ immediately below Assign OP; selecting a posting defaults it to the posting title. Campaign name is an exception to inherited read-only fields: persist user edits across save/reopen without overwriting from the source, while Preview still shows the original source posting title.
+
+Campaign Step 1 does not show the ดูข้อมูลจากประกาศ expandable panel. Selected posting is a compact confirmation card: ประกาศที่เลือก label, title, Brief ID · Job ID, a short read-only explanation and a separate action row for ดูประกาศต้นทาง / ยกเลิกการใช้ประกาศ. Keep selection/import logic and editable campaign name intact.
+
+Campaign forms use a consistent typography hierarchy across both steps: page title 24px/600, step heading 20px/600, card headings 18px/600, field labels 14px/500, entered values and primary options 16px/400, helper text 14px/400, and compact Preview labels/metadata 13px. Inputs must not inherit bold weight from Field labels. Keep Bai Jamjuree and scope these refinements to Campaign forms.
+
+Reward points (แต้มรางวัลสำหรับงานนี้: Fix point / Auto point, points and 10-point-per-baht value) belong to Job Posting Create/Edit/Detail, not the Campaign form. Persist pointType/points in postings including drafts and edits; inherit saved posting points into campaigns as read-only source values. Preserve existing campaign points when a legacy source posting has no point fields. Missing legacy posting points are shown explicitly, not as invented zero values.
+
+Campaign selected-reviewer Brief is required on Create/Edit: provide at least one uploaded brief file or a valid HTTP/HTTPS brief link before saving. Show a required marker, clear inline validation, and keep this section editable even when a source posting is selected.
+
+Product option belongs to Job Posting Create/Edit/Detail, not Campaign forms. Allow adding/removing product entries and preserve products in drafts/edits. Detail displays saved products or ยังไม่ระบุ. Campaigns inherit saved source posting products as read-only data; preserve legacy campaign products when the source has no products field.
+
+Campaign Detail header uses normal document flow for identity, controls and tabs, with consistent 24px section gaps. Keep workflow stages 24px below the header, secondary statuses 16px below stages and compact 12px button gaps; allow wrapping and horizontal tab scrolling on narrow screens.
+
+Campaign Create/Edit posting selection uses compact checkbox rows, title/Job ID search, All/Selected tabs with counts, six-row pagination, per-row source links and clear selection. Preserve multiple selection across search, pages and Brief changes; do not repeat selected postings as large summary cards. Only offer Briefs linked to the parent Project and retain saved snapshots on Edit.
+
+Campaign posting selection rows show a compact circular posting Avatar. Remove the Selected tab; use one posting list with a selected count, search and pagination. This supersedes the previous All/Selected tabs requirement.
+
+Job Posting JOB20260901’s ดูหน้าประกาศ action opens https://www.buddyreview.co/campaign/EMr3CC9K56/preview in a new tab.
+
+Brief Create/Edit form content is centered with a maximum width of 800px and retains responsive outer gutters. This is an explicit exception to the fluid-width rule.
+
+Brief Create/Edit fields use a single vertical column on all screen sizes, ordered Project Name, Brand, Cover Image, within the centered 800px maximum-width form.
+
+Brief Create/Edit logo field follows the supplied reference: centered 240px square, โลโก้แบรนด์ required label, contained image preview with a top-right remove button, camera upload placeholder with PNG/JPG up to 3 MB helper, red dashed empty border and กรุณาเพิ่มรูป message. A logo is now required to save a Brief, superseding the optional Cover Image rule. Keep Project Name and Brand stacked above it and store the logo in the existing image field.
+
+Brief Create/Edit logo upload and preview are 120 × 120px, superseding the earlier 240px size. Scale the placeholder and top-right remove button to fit this size.
+
+Brief Create/Edit places the centered 120px logo field above Project Name and Brand. Logo label, format/size helper and validation text use 1rem; place the helper outside the square below it to avoid cramped text. This supersedes the previous logo-last field order.
+
+Brief logo reference correction: keep file-format/size helper inside the empty dashed upload square below a camera-with-plus icon; do not show this helper beneath a saved logo. Keep 120px square and 1rem text, logo above Project Name, and the missing-image message below the square. This supersedes the helper-outside rule.
+
+Brief Create/Edit includes a required editable Brief ID below the logo. Validate allowed English letters, digits, hyphens/underscores and duplicate IDs. Saving navigates to the entered ID; renamed Briefs keep legacy ID aliases so linked postings and Project Brief selections resolve to the current ID without losing saved Campaign snapshots.
+
+Brief Create/Edit uses the supplied repeatable Brief list: numbered rows, drag handles, delete actions, เพิ่มบรีฟ and per-part validation for XXXYYYYMMNNN (three English letters, four-digit AD year, month 01–12, sequence 000–999). Persist ordered briefNumbers; first number is the primary route ID and other numbers resolve to the same Brief. Reject duplicate numbers within a form and across Briefs; support keyboard arrow reordering. This supersedes the single Brief ID input and permissive ID format.
+
+Brief Create/Edit field order is logo → Project Name → Brand → Brief IDs → Product option. Product option belongs to Brief Create/Edit/Detail and is removed from Job Posting forms/detail. Persist products on Briefs; surface existing linked-posting products as a legacy fallback until the Brief saves its own products, including an explicit empty list. Campaign source imports inherit products from the linked Brief; preserve existing saved campaign snapshots. This supersedes posting-owned Product option.
+
+Brief Create/Edit uses the supplied Project form visual reference: white page/header, centered pale #f7f9fb form shell (800px maximum) with 24px padding/gaps, separate white minimally rounded cards without shadows for logo/name/Brand, Brief IDs and Product option. Remove the numbered Basic Information heading and subtitle. Use pale input borders, slate text, blue add actions, green ID validation and centered footer actions with purple primary. Keep existing Brief fields and behavior; do not add Project-only fields from the reference.
+
+Brief Product option follows the supplied product references: empty numbered เพิ่ม product row; added items have draggable numbered rows and pale cards with required image upload (PNG/JPG/JPEG/AVIF ≤3 MB), required product name, optional description and top-right delete. Persist product objects {name,image,description}, display images/name/description on Brief Detail, and preserve legacy string products by normalizing them without requiring missing legacy images. Keep desktop image/form columns and stack on mobile.
+
+Brief Create/Edit footer places Cancel at the left edge and Create/Save at the right edge of an 800px maximum-width action row, on desktop and mobile. Keep buttons in one horizontal row; this supersedes centered/stacked Brief footer actions.
+
+Brief Create/Edit Brand is a required free-text input, with no options, autocomplete or dropdown. Preserve existing values and trim whitespace on save; reject blank/whitespace-only values. This supersedes the Brand picker for Brief forms only.
+
+Brief List and Brief Detail share the same summary identity layout: Project Name as the title, Brand as the subtitle, and all saved Brief numbers as badges beneath it (legacy fallback to id). Use a shared BriefSummary component; keep list posting counts and detail edit-chip behavior. Search all saved Brief numbers in the list.
+
+Brief Detail uses the Project Detail design system for summary identity, purple underline tabs, white bordered section cards, slate typography and consistent 24px spacing (12px card padding on mobile). Preserve recruitment Calendar/Table controls, tab counts and Product Option behavior.
+
+Requirement documents should be written as detailed PO briefs for developers: explain business goals, scope, entity ownership, business rules and dependencies, validation, state transitions, edge cases, navigation and testable acceptance criteria. Distinguish confirmed requirements, current prototype behavior and unresolved PO decisions; do not silently invent business rules.
+
+Job Posting Create/Edit sections are numbered: 1 Setting (Owner / Assign Buyer and campaign type), 2 Creator Criteria, 3 Job Information (existing short brief and periods plus Reference Brief), 4 Compensation. Keep Basic Information and reward points. Owner is shown only in Setting. Compensation options stack vertically; only the selected option expands its budget/product fields immediately beneath it. Product / Benefit Detail offers saved products from the originating Brief or Other free text; persist the chosen product snapshot/source with the existing benefit text for draft/save/edit compatibility.
+
+Job Posting Create/Edit uses the Project form visual system already applied to Brief forms: white page/header, centered 800px pale #f7f9fb shell, white minimally rounded cards without shadows, slate typography, pale 6px-radius inputs, 24px section gaps and purple primary footer actions. Use plain section headings without numbered chips. Keep the four section groups, conditional Compensation fields and blue selected campaign/criteria styling.
+
+Job Posting Create/Edit Job Information field order is Short Brief → Reference Brief → campaign periods. Place Reference Brief directly below Short Brief.
+
+Job Posting Create/Edit uses a Campaign-style four-step wizard: Setting → Creator Criteria → Job Information → Compensation. Basic Information belongs to Job Information; reward points belong to Compensation. Keep Reference Brief below Short Brief. Preserve entered data across steps, provide Previous/Next and clickable step navigation, keep Save as Draft available on Create, and show publish/save on the last step. Final validation opens the step containing the first error. Use the existing Campaign stepper and blue wizard navigation while retaining Project-style form cards.
+
+Job Posting wizard shows a Campaign-style centered “Step N: Title” and Thai helper above the shell. Each functional section is a separate white card: Setting splits Owner and campaign type; Creator Criteria keeps its groups as sibling cards; Job Information splits Short Brief, Reference Brief, campaign periods and Basic Information; Compensation and reward points remain separate cards.
+
+Job Posting wizard Basic Information (brand logo, Campaign Title, Campaign Subtitle and Brand) is in Step 2 above Creator Criteria, superseding its earlier Step 3 placement. Validation of these fields navigates to Step 2.
+
+Job Posting Step 2 places Basic Information (logo, Campaign Title, Campaign Subtitle and Brand) directly after the Creator Criteria scope section, superseding its earlier placement above Creator Criteria.
+
+Job Posting forms remove the editable Brand field while retaining originating/saved brand data. Confidential campaign adds a separate card after scope and before Basic Information for pending/rejected reviewers: orange-highlighted audience heading, fixed Buddy Review logo, required separate Campaign Title and Subtitle. Persist confidentialTitle/confidentialSubtitle through draft/save/edit; require these only when publishing Confidential, and preserve them when switching type.
+
+Confidential Job Posting Basic Information displays “ข้อมูลที่แสดงสำหรับ นักรีวิวที่ผ่านการคัดเลือกเท่านั้น” above the editable brand logo, with the selected-reviewer phrase blue. Its saved title/subtitle labels are Confidential campaign Title and Confidential Campaign Subtitle. Normal/Private retain existing labels; separate pending/rejected information remains above this card.
+
+Job Posting Edit has a pale-blue คัดลอกประกาศ button at the upper right like the Campaign reference. Open a new Create wizard prefilled from the saved posting in a new tab, retain its linked Brief and form values, suffix the title with (สำเนา), use a new ID on save and reset applicants/viewers. Do not copy reviewer decisions or create a posting until Draft/Publish is clicked.
+
+Private Campaign Job Posting Create/Edit hides the recruitment period inputs and recruitment-dependent helper text. Keep campaign working dates available and preserve entered recruitment dates when switching campaign types within the form. Recruitment dates are not required for Private Campaign.
+
+Job Posting publish/create and edit save validate first, then show a confirmation dialog offering an optional Preview action opening https://www.buddyreview.co/campaign/EMr3CC9K56/preview in a new tab. Preview does not save or close the dialog. Confirm persists the posting; create confirmation navigates to /job-postings/JOB20260901, while edit confirmation returns to the edited posting Detail. Draft saving retains its existing direct-save flow.
+
+Job Posting JOB20261001’s ดูหน้าประกาศ action opens https://www.buddyreview.co/campaign/EMr3CC9K56/preview in a new tab, matching JOB20260901.
+
+Correction: clicking the final Job Posting Create/Edit save action opens the Preview/confirmation modal immediately, including incomplete forms. Confirm then validates, closes the modal and navigates to the first invalid step when needed; persist and navigate only after validation passes. This supersedes validation before showing the dialog.
+
+Job Posting save confirmation modal centers Preview as the primary action with a new-tab helper. Separate footer places กลับไปแก้ไข on the left and the outlined confirmation action on the right. Keep the modal compact, bounded and responsive; preserve save/Preview behavior.
+
+Job Posting Detail places its แก้ไข action at the top-right of the summary card instead of overlaying the avatar. Reserve space so it does not overlap the title on desktop or mobile. Brief edit placement remains unchanged.
+
+Job Posting reviewer selection toolbar keeps select-all and the count left-aligned, with the count formatted (เลือก N คน). Group bulk Reject / Accept actions at the right edge, preserving Reject before Accept.
+
+The bulk Reject button in the Job Posting reviewer selection toolbar uses a red outline, red text/icon and white background, with a pale-red hover state. Keep the disabled state when no reviewers are selected.

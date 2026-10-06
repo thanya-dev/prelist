@@ -1,3 +1,4 @@
+import { getBriefById } from '../briefs/briefApi.js';
 import { SEED_JOB_POSTINGS } from './jobPostingSeeds.js';
 export function getJobPostings() {
   try {
@@ -9,9 +10,9 @@ export function getJobPostings() {
       ...seedPosting,
       ...savedPostings.find((posting) => posting.id === seedPosting.id),
     }));
-    return [...mergedSeedPostings, ...customPostings];
+    return [...mergedSeedPostings, ...customPostings].map(resolvePostingBrief);
   } catch {
-    return SEED_JOB_POSTINGS;
+    return SEED_JOB_POSTINGS.map(resolvePostingBrief);
   }
 }
 export function getJobPostingById(jobPostingId) {
@@ -25,4 +26,13 @@ export function updateJobPosting(jobPostingId, posting) {
     existingPosting.id === jobPostingId ? posting : existingPosting,
   );
   localStorage.setItem('buddy-job-postings', JSON.stringify(postings));
+}
+
+function resolvePostingBrief(posting) {
+  const brief = getBriefById(posting.brief);
+  return {
+    ...posting,
+    brief: brief?.id || posting.brief,
+    ...(brief ? { products: brief.products } : {}),
+  };
 }

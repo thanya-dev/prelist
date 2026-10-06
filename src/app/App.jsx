@@ -6,7 +6,7 @@ import { useProjects } from '../features/projects/useProjects.js';
 import { PRELIST_REVIEWERS } from '../features/projects/prelistSeeds.js';
 import { BroadcastModal } from '../features/projects/BroadcastModal.jsx';
 export function App() {
-  const { projects, saveProject } = useProjects();
+  const { projects } = useProjects();
   const [notice, setNotice] = useState('');
   const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
   const [broadcastMessage, setBroadcastMessage] = useState('');
@@ -83,20 +83,12 @@ export function App() {
     navigate(`/projects/${project.id}`);
     window.scrollTo(0, 0);
   };
-  const handleOpenProjectForm = (project = null) => {
-    if (project) {
-      navigate(`/projects/${project.id}/edit`);
-    } else {
-      navigate('/projects/create');
-    }
-    window.scrollTo(0, 0);
-  };
-  const handleSave = (project, isEditing) => {
-    saveProject(project, isEditing);
-    setNotice(isEditing ? 'แก้ไขโปรเจกต์เรียบร้อย' : 'สร้างโปรเจกต์เรียบร้อย');
-    navigate(`/projects/${project.id}`);
-    window.scrollTo(0, 0);
-    window.setTimeout(() => setNotice(''), 2500);
+  const handleOpenProjectForm = () => {
+    window.open(
+      'https://manage.buddyreview.co/project/create/uGvkPwRGps',
+      '_blank',
+      'noopener,noreferrer',
+    );
   };
   return (
     <>
@@ -106,7 +98,6 @@ export function App() {
           navigate={navigate}
           onOpenProject={handleOpenProject}
           onEditProject={handleOpenProjectForm}
-          onSaveProject={handleSave}
         />
       </div>
       {notice && (

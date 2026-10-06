@@ -11,6 +11,12 @@ coverage/
 .npm/
 .wrangler/
 
+# Local deployment metadata and environment overrides
+.vercel/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+
 # Logs
 logs/
 *.log

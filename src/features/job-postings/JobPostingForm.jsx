@@ -1,6 +1,16 @@
+import { JobPostingSaveModal } from './JobPostingSaveModal.jsx';
+import { ConfidentialInformationFields } from './ConfidentialInformationFields.jsx';
+
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, CalendarBlank, CaretRight, LinkSimple } from '@phosphor-icons/react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import {
+  ArrowLeft,
+  CalendarBlank,
+  CaretRight,
+  Check,
+  Copy,
+  LinkSimple,
+} from '@phosphor-icons/react';
 import { getJobPostingById, createJobPosting, updateJobPosting } from './jobPostingApi.js';
 import { Field } from '../../components/ui/Field.jsx';
 import { CampaignBasicInformationFields } from './CampaignBasicInformationFields.jsx';
@@ -12,8 +22,16 @@ import {
   CONTENT_SCOPE_GROUPS,
   CREATOR_PLATFORM_CONTENT_TYPES,
 } from './CreatorCriteriaFields.jsx';
-import { ChoiceButton } from '../../components/ui/ChoiceButton.jsx';
+import { CompensationFields } from './CompensationFields.jsx';
 import { DAY_MS, parseDay } from '../../utils/formatDate.js';
+
+const POSTING_STEPS = ['Setting', 'Creator Criteria', 'Job Information', 'Compensation'];
+const POSTING_STEP_DESCRIPTIONS = [
+  'ตั้งค่าบรีฟ',
+  'ระบุ Creator ที่ต้องการสำหรับงานนี้',
+  'ระบุข้อมูลประกาศและรายละเอียดงาน',
+  'กำหนดค่าตอบแทน',
+];
 
 const normalizeFormDate = (value) => {
   const day = parseDay(value);
@@ -23,8 +41,23 @@ const normalizeFormDate = (value) => {
 export function JobPostingForm() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const job = id ? getJobPostingById(id) : null;
-  const isEditing = Boolean(job);
+  const searchParams = new URLSearchParams(window.location.search);
+  const sourcePosting =
+    !id && searchParams.get('copyFrom') ? getJobPostingById(searchParams.get('copyFrom')) : null;
+  const job = id
+    ? getJobPostingById(id)
+    : sourcePosting
+      ? {
+          ...sourcePosting,
+          id: undefined,
+          name: `${sourcePosting.name} (สำเนา)`,
+          applicants: 0,
+          viewerCount: 0,
+          status: 'Draft',
+        }
+      : null;
+  const isEditing = Boolean(id && job);
+  const hasInitialValues = Boolean(job);
   const parentBriefId = job?.brief || new URLSearchParams(window.location.search).get('briefId');
   const parentBrief = getBriefById(parentBriefId);
   const currentUser = getCurrentUser();
@@ -33,11 +66,17 @@ export function JobPostingForm() {
     : parentBriefId
       ? `/briefs/${parentBriefId}`
       : '/briefs';
-  const [name, setName] = useState(isEditing ? (job.name ?? '') : (parentBrief?.name ?? ''));
+  const [name, setName] = useState(hasInitialValues ? (job.name ?? '') : (parentBrief?.name ?? ''));
   const [campaignType, setCampaignType] = useState(job?.campaignType ?? 'normal');
   const [subtitle, setSubtitle] = useState(job?.subtitle ?? '');
-  const [brand, setBrand] = useState(isEditing ? (job.brand ?? '') : (parentBrief?.brand ?? ''));
-  const [cover, setCover] = useState(isEditing ? (job.image ?? '') : (parentBrief?.image ?? ''));
+  const [confidentialTitle, setConfidentialTitle] = useState(job?.confidentialTitle ?? '');
+  const [confidentialSubtitle, setConfidentialSubtitle] = useState(job?.confidentialSubtitle ?? '');
+  const [brand, setBrand] = useState(
+    hasInitialValues ? (job.brand ?? '') : (parentBrief?.brand ?? ''),
+  );
+  const [cover, setCover] = useState(
+    hasInitialValues ? (job.image ?? '') : (parentBrief?.image ?? ''),
+  );
   const [owner, setOwner] = useState(job?.owner ?? currentUser.email);
   const [platforms, setPlatforms] = useState(job?.platforms ?? []);
   const [contentTypes, setContentTypes] = useState(job?.contentTypes ?? []);
@@ -67,11 +106,16 @@ export function JobPostingForm() {
   const [budgetMin, setBudgetMin] = useState(job?.budgetMin ?? '');
   const [budgetMax, setBudgetMax] = useState(job?.budgetMax ?? '');
   const [benefit, setBenefit] = useState(job?.benefit ?? '');
+  const [benefitSource, setBenefitSource] = useState(job?.benefitSource ?? 'other');
+  const [benefitProduct, setBenefitProduct] = useState(job?.benefitProduct ?? null);
   const [briefLink, setBriefLink] = useState(job?.briefLink ?? '');
   const [errors, setErrors] = useState({});
-  const paid = compensation === 'มีค่าจ้าง' || compensation === 'ค่าจ้าง + สินค้า / Benefit';
-  const hasBenefit =
-    compensation === 'สินค้า / Benefit เท่านั้น' || compensation === 'ค่าจ้าง + สินค้า / Benefit';
+  const [step, setStep] = useState(0);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const handleStep = (nextStep) => {
+    setStep(nextStep);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   const togglePlatform = (platform) => {
     const next = platforms.includes(platform)
       ? platforms.filter((item) => item !== platform)
@@ -125,14 +169,21 @@ export function JobPostingForm() {
     setErrors((current) => ({ ...current, [field]: '' }));
   };
   const handleSubmit = (isDraft = false) => {
+    setIsSaveModalOpen(false);
     if (!name.trim()) {
-      setErrors({
-        name: 'กรุณาระบุชื่อประกาศ',
-      });
+      setErrors({ name: 'กรุณาระบุชื่อประกาศ' });
+      handleStep(1);
       return;
     }
     if (!isDraft) {
       const nextErrors = {};
+      if (campaignType === 'confidential') {
+        if (!confidentialTitle.trim()) nextErrors.confidentialTitle = 'กรุณากรอก Campaign title';
+        if (!confidentialSubtitle.trim())
+          nextErrors.confidentialSubtitle = 'กรุณากรอก Campaign subtitle';
+      }
+      if (!owner.trim()) nextErrors.owner = 'กรุณาเลือก Owner / Assign Buyer';
+      if (!compensation) nextErrors.compensation = 'กรุณาเลือก Compensation Type';
       if (!cover) nextErrors.cover = 'กรุณาอัปโหลดโลโก้แบรนด์';
       if (!subtitle.trim()) nextErrors.subtitle = 'กรุณาระบุ Campaign Subtitle';
       if (!target || Number(target) < 1 || !Number.isInteger(Number(target)))
@@ -153,6 +204,19 @@ export function JobPostingForm() {
       if (!contentTypes.length) nextErrors.contentTypes = 'กรุณาเลือกสโคปงาน';
       if (Object.keys(nextErrors).length) {
         setErrors(nextErrors);
+        const errorStep = nextErrors.owner
+          ? 0
+          : ['target', 'targetPost', 'gender', 'age', 'follower', 'platforms', 'contentTypes'].some(
+                (key) => nextErrors[key],
+              )
+            ? 1
+            : nextErrors.cover ||
+                nextErrors.subtitle ||
+                nextErrors.confidentialTitle ||
+                nextErrors.confidentialSubtitle
+              ? 1
+              : 3;
+        handleStep(errorStep);
         return;
       }
     }
@@ -162,6 +226,8 @@ export function JobPostingForm() {
       name: name.trim(),
       subtitle: subtitle.trim(),
       campaignType,
+      confidentialTitle: confidentialTitle.trim(),
+      confidentialSubtitle: confidentialSubtitle.trim(),
       brand,
       image: cover,
       owner,
@@ -186,6 +252,8 @@ export function JobPostingForm() {
       budgetMin,
       budgetMax,
       benefit,
+      benefitSource,
+      benefitProduct,
       briefLink,
       applicants: job?.applicants ?? 0,
       viewerCount: job?.viewerCount ?? 0,
@@ -197,15 +265,57 @@ export function JobPostingForm() {
           : job?.status || 'Published',
       tone: job?.tone ?? 'new',
     };
+    if (isDraft) {
+      createJobPosting(saved);
+      navigate(`/job-postings/${saved.id}`);
+      return;
+    }
     if (isEditing) updateJobPosting(id, saved);
     else createJobPosting(saved);
-    navigate(backPath);
+    navigate(`/job-postings/${saved.id}`);
   };
   return (
     <div className="form-page lifecycle-form-page job-posting-form">
+      {isSaveModalOpen && (
+        <JobPostingSaveModal
+          isEditing={isEditing}
+          onClose={() => setIsSaveModalOpen(false)}
+          onConfirm={() => handleSubmit()}
+        />
+      )}
       <header className="form-head">
+        {isEditing && (
+          <button
+            type="button"
+            className="posting-copy-button"
+            onClick={() =>
+              window.open(
+                `/job-postings/create?copyFrom=${encodeURIComponent(id)}&briefId=${encodeURIComponent(parentBriefId || '')}`,
+                '_blank',
+                'noopener,noreferrer',
+              )
+            }
+          >
+            <Copy size={18} /> คัดลอกประกาศ
+          </button>
+        )}
         <div className="breadcrumbs">
-          ประกาศหานักรีวิว <CaretRight /> <b>{isEditing ? 'แก้ไขประกาศ' : 'สร้างประกาศ'}</b>
+          <Link to="/briefs" className="hover:text-[#5135ff] hover:underline transition-colors">
+            ประกาศหานักรีวิว
+          </Link>{' '}
+          <CaretRight />{' '}
+          {parentBriefId && (
+            <>
+              <Link
+                to={`/briefs/${parentBriefId}`}
+                className="hover:text-[#5135ff] hover:underline transition-colors"
+              >
+                {parentBriefId}
+              </Link>{' '}
+              <CaretRight />{' '}
+            </>
+          )}
+          <b>{isEditing ? 'แก้ไขประกาศ' : 'สร้างประกาศ'}</b>
         </div>
         <button className="back-link" onClick={() => navigate(backPath)}>
           <ArrowLeft /> Back
@@ -215,92 +325,178 @@ export function JobPostingForm() {
           ข้อมูลการรับสมัครงานที่ Influencer จะมองเห็นเมื่อเข้ามาที่ลิงก์นี้
         </p>
       </header>
+      <ol className="cw-stepper posting-stepper" aria-label="ขั้นตอนสร้างประกาศ">
+        {POSTING_STEPS.map((title, index) => (
+          <li key={title} className={index <= step ? 'active' : ''}>
+            <button
+              type="button"
+              onClick={() => handleStep(index)}
+              aria-current={index === step ? 'step' : undefined}
+            >
+              <span className="cw-step-number">{index < step ? <Check /> : index + 1}</span>
+              <span>{title}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+      <div className="cw-step-title" aria-live="polite">
+        <h2>
+          Step {step + 1}: {POSTING_STEPS[step]}
+        </h2>
+        <p>{POSTING_STEP_DESCRIPTIONS[step]}</p>
+      </div>
       <main className="form-wrap lifecycle-form gap-6 max-[760px]:gap-4">
-        <CampaignTypeFields value={campaignType} onChange={setCampaignType} />
-
-        <section className="form-card prelist-section">
-          <div className="section-heading gap-3 mb-6">
-            <span className="section-number">1</span>
-            <div>
-              <h2>Creator Criteria</h2>
-              <p>ระบุ Creator ที่ต้องการสำหรับงานนี้</p>
+        <div className="posting-wizard-step" hidden={step !== 0}>
+          <section className="form-card prelist-section" aria-label="Setting ตั้งค่าบรีฟ">
+            <div className="grid gap-6">
+              <Field label="Owner / Assign Buyer" required>
+                <select
+                  value={owner}
+                  onChange={(event) => handleBasicInformationChange('owner', event.target.value)}
+                >
+                  {[
+                    ...new Set([
+                      owner,
+                      currentUser.email,
+                      'thanya@buddyreview.co',
+                      'nattaya@buddyreview.co',
+                      'itsariya@buddyreview.co',
+                    ]),
+                  ]
+                    .filter(Boolean)
+                    .map((email) => (
+                      <option key={email}>{email}</option>
+                    ))}
+                </select>
+              </Field>
             </div>
-          </div>
-          <CreatorCriteriaFields
-            values={{
-              target,
-              targetPost,
-              targetGroup,
-              genders,
-              ageMin,
-              ageMax,
-              followerMin,
-              followerMax,
-              platforms,
-              contentScope,
-            }}
-            onChange={handleCriteriaChange}
-            onTogglePlatform={togglePlatform}
-            onSelectScope={handleSelectScope}
+          </section>
+          <CampaignTypeFields value={campaignType} onChange={setCampaignType} />
+        </div>
+        <div className="posting-wizard-step" hidden={step !== 1}>
+          <section className="posting-criteria-sections">
+            <CreatorCriteriaFields
+              values={{
+                target,
+                targetPost,
+                targetGroup,
+                genders,
+                ageMin,
+                ageMax,
+                followerMin,
+                followerMax,
+                platforms,
+                contentScope,
+              }}
+              onChange={handleCriteriaChange}
+              onTogglePlatform={togglePlatform}
+              onSelectScope={handleSelectScope}
+              errors={errors}
+            />
+          </section>
+          {campaignType === 'confidential' && (
+            <ConfidentialInformationFields
+              title={confidentialTitle}
+              subtitle={confidentialSubtitle}
+              errors={errors}
+              onChange={(field, value) => {
+                if (field === 'confidentialTitle') setConfidentialTitle(value);
+                else setConfidentialSubtitle(value);
+                setErrors((current) => ({ ...current, [field]: '' }));
+              }}
+            />
+          )}
+          <CampaignBasicInformationFields
+            isConfidential={campaignType === 'confidential'}
+            name={name}
+            subtitle={subtitle}
+            cover={cover}
+            onChange={handleBasicInformationChange}
             errors={errors}
+            onCoverError={(message) => setErrors((current) => ({ ...current, cover: message }))}
           />
-        </section>
-
-        <section className="form-card prelist-section">
-          <div className="section-heading gap-3 mb-6">
-            <span className="section-number">2</span>
-            <div>
-              <h2>Job Information</h2>
-              <p>ข้อมูลสั้นๆ ที่ Creator ต้องรู้ก่อนตัดสินใจ</p>
-            </div>
-          </div>
-          <Field
-            label="Short Brief"
-            required
-            hint="สรุปรายละเอียดงานที่ Influencer ต้องรู้ก่อนตัดสินใจว่าสนใจหรือไม่"
-          >
-            <div className="rich-field">
-              <div className="rich-toolbar">
-                <button type="button">
-                  <b>B</b>
-                </button>
-                <button type="button">
-                  <i>I</i>
-                </button>
-                <button type="button">• List</button>
+        </div>
+        <div className="posting-wizard-step" hidden={step !== 2}>
+          <section className="form-card prelist-section">
+            <div className="section-heading gap-3 mb-6">
+              <span className="section-number">3</span>
+              <div>
+                <h2>Job Information</h2>
+                <p>ข้อมูลสั้นๆ ที่ Creator ต้องรู้ก่อนตัดสินใจ</p>
               </div>
-              <textarea
-                maxLength="500"
-                value={brief}
-                onChange={(event) => {
-                  setBrief(event.target.value);
-                  setErrors((current) => ({
-                    ...current,
-                    brief: '',
-                  }));
-                }}
-                placeholder="เช่น เข้าร่วมกิจกรรม Dyson On The Go ที่มหาวิทยาลัยกรุงเทพ และโพสต์ TikTok Video 1 คลิป"
-              />
-              <span className="char-count">{brief.length}/500</span>
             </div>
-            {errors.brief && <small className="field-error">{errors.brief}</small>}
-          </Field>
-          <section className="campaign-period mt-6 rounded-xl bg-white p-6 max-[760px]:p-3">
-            <h3 className="text-xl font-semibold">ระยะเวลาของแคมเปญ</h3>
-            <p className="mt-2 text-base text-[#7889a4]">
-              ช่วงเวลาทำแคมเปญต้องเริ่มหลังจากวันที่ปิดรับสมัครเป็นต้นไป
+            <Field
+              label="Short Brief"
+              required
+              hint="สรุปรายละเอียดงานที่ Influencer ต้องรู้ก่อนตัดสินใจว่าสนใจหรือไม่"
+            >
+              <div className="rich-field">
+                <div className="rich-toolbar">
+                  <button type="button">
+                    <b>B</b>
+                  </button>
+                  <button type="button">
+                    <i>I</i>
+                  </button>
+                  <button type="button">• List</button>
+                </div>
+                <textarea
+                  maxLength="500"
+                  value={brief}
+                  onChange={(event) => {
+                    setBrief(event.target.value);
+                    setErrors((current) => ({
+                      ...current,
+                      brief: '',
+                    }));
+                  }}
+                  placeholder="เช่น เข้าร่วมกิจกรรม Dyson On The Go ที่มหาวิทยาลัยกรุงเทพ และโพสต์ TikTok Video 1 คลิป"
+                />
+                <span className="char-count">{brief.length}/500</span>
+              </div>
+              {errors.brief && <small className="field-error">{errors.brief}</small>}
+            </Field>
+          </section>
+          <section className="form-card prelist-section">
+            <h3 className="mb-2 text-lg font-semibold">Reference Brief</h3>
+            <p className="mb-4 text-sm text-muted">
+              แนบลิงก์ข้อมูลเพิ่มเติมได้โดยยังไม่ต้องอัปโหลด Full Brief
             </p>
+            <Field label="Brief Link">
+              <div className="input-with-icon">
+                <LinkSimple />
+                <input
+                  type="url"
+                  value={briefLink}
+                  onChange={(event) => setBriefLink(event.target.value)}
+                  placeholder="https://..."
+                />
+              </div>
+              <small className="field-help">
+                รองรับ Google Docs, Google Slides และ External URL
+              </small>
+            </Field>
+          </section>
+          <section className="form-card prelist-section posting-period-section">
+            <h3 className="text-xl font-semibold">ระยะเวลาของแคมเปญ</h3>
+            {campaignType !== 'private' && (
+              <p className="mt-2 text-base text-[#7889a4]">
+                ช่วงเวลาทำแคมเปญต้องเริ่มหลังจากวันที่ปิดรับสมัครเป็นต้นไป
+              </p>
+            )}
             <div className="mt-6 grid gap-6 max-[760px]:gap-4">
-              <CampaignDateRange
-                title="ระยะเวลารับสมัคร"
-                startLabel="วันที่เปิดรับสมัคร"
-                endLabel="วันที่ปิดรับสมัคร"
-                startValue={applyStartDate}
-                endValue={deadline}
-                onStartChange={setApplyStartDate}
-                onEndChange={setDeadline}
-                error={errors.deadline}
-              />
+              {campaignType !== 'private' && (
+                <CampaignDateRange
+                  title="ระยะเวลารับสมัคร"
+                  startLabel="วันที่เปิดรับสมัคร"
+                  endLabel="วันที่ปิดรับสมัคร"
+                  startValue={applyStartDate}
+                  endValue={deadline}
+                  onStartChange={setApplyStartDate}
+                  onEndChange={setDeadline}
+                  error={errors.deadline}
+                />
+              )}
               <CampaignDateRange
                 title="ระยะเวลาทำแคมเปญ"
                 startLabel="วันที่เริ่มทำแคมเปญ"
@@ -313,112 +509,37 @@ export function JobPostingForm() {
               />
             </div>
           </section>
-        </section>
-
-        <section className="form-card prelist-section">
-          <div className="section-heading gap-3 mb-6">
-            <span className="section-number">3</span>
-            <div>
-              <h2>Compensation</h2>
-              <p>สิ่งที่ Creator จะได้รับจากการร่วมงาน</p>
-            </div>
-          </div>
-          <Field label="Compensation Type" required>
-            <div className="choice-grid compensation-grid gap-2">
-              {[
-                'มีค่าจ้าง',
-                'ไม่มีค่าจ้าง',
-                'สินค้า / Benefit เท่านั้น',
-                'ค่าจ้าง + สินค้า / Benefit',
-              ].map((item) => (
-                <ChoiceButton
-                  key={item}
-                  selected={compensation === item}
-                  onClick={() => {
-                    setCompensation(item);
-                    setErrors((current) => ({
-                      ...current,
-                      compensation: '',
-                    }));
-                  }}
-                >
-                  {item}
-                </ChoiceButton>
-              ))}
-            </div>
-            {errors.compensation && <small className="field-error">{errors.compensation}</small>}
-          </Field>
-          {paid && (
-            <Field label="Budget Range">
-              <div className="budget-range">
-                <div>
-                  <small>Minimum</small>
-                  <input
-                    type="number"
-                    placeholder="1,000"
-                    value={budgetMin}
-                    onChange={(event) => setBudgetMin(event.target.value)}
-                  />
-                </div>
-                <span>–</span>
-                <div>
-                  <small>Maximum</small>
-                  <input
-                    type="number"
-                    placeholder="2,000"
-                    value={budgetMax}
-                    onChange={(event) => setBudgetMax(event.target.value)}
-                  />
-                </div>
-                <b>THB</b>
+        </div>
+        <div className="posting-wizard-step" hidden={step !== 3}>
+          <section className="form-card prelist-section" aria-label="Compensation">
+            <div className="section-heading gap-3 mb-6">
+              <span className="section-number">4</span>
+              <div>
+                <h2>Compensation</h2>
+                <p>สิ่งที่ Creator จะได้รับจากการร่วมงาน</p>
               </div>
-              {errors.budget && <small className="field-error">{errors.budget}</small>}
-            </Field>
-          )}
-          {hasBenefit && (
-            <Field label="Product / Benefit Detail">
-              <textarea
-                className="simple-textarea"
-                value={benefit}
-                onChange={(event) => setBenefit(event.target.value)}
-                placeholder="เช่น Dyson Airwrap มูลค่า 19,900 บาท"
-              />
-            </Field>
-          )}
-        </section>
-
-        <section className="form-card prelist-section">
-          <div className="section-heading gap-3 mb-6">
-            <span className="section-number">4</span>
-            <div>
-              <h2>Reference Brief</h2>
-              <p>แนบลิงก์ข้อมูลเพิ่มเติมได้โดยยังไม่ต้องอัปโหลด Full Brief</p>
             </div>
-          </div>
-          <Field label="Brief Link">
-            <div className="input-with-icon">
-              <LinkSimple />
-              <input
-                type="url"
-                value={briefLink}
-                onChange={(event) => setBriefLink(event.target.value)}
-                placeholder="https://..."
-              />
-            </div>
-            <small className="field-help">รองรับ Google Docs, Google Slides และ External URL</small>
-          </Field>
-        </section>
-        <CampaignBasicInformationFields
-          name={name}
-          subtitle={subtitle}
-          brand={brand}
-          cover={cover}
-          owner={owner}
-          currentUser={currentUser}
-          onChange={handleBasicInformationChange}
-          errors={errors}
-          onCoverError={(message) => setErrors((current) => ({ ...current, cover: message }))}
-        />
+            <CompensationFields
+              compensation={compensation}
+              onCompensationChange={(value) => {
+                setCompensation(value);
+                setErrors((current) => ({ ...current, compensation: '' }));
+              }}
+              error={errors.compensation}
+              budgetMin={budgetMin}
+              budgetMax={budgetMax}
+              onBudgetMinChange={setBudgetMin}
+              onBudgetMaxChange={setBudgetMax}
+              benefit={benefit}
+              benefitSource={benefitSource}
+              benefitProduct={benefitProduct}
+              products={parentBrief?.products || []}
+              onBenefitChange={setBenefit}
+              onBenefitSourceChange={setBenefitSource}
+              onBenefitProductChange={setBenefitProduct}
+            />
+          </section>
+        </div>
       </main>
       <footer className="prelist-sticky">
         <div>
@@ -429,13 +550,29 @@ export function JobPostingForm() {
           <button className="secondary-button" onClick={() => navigate(backPath)}>
             ยกเลิก
           </button>
+          {step > 0 && (
+            <button className="secondary-button" onClick={() => handleStep(step - 1)}>
+              ย้อนกลับ
+            </button>
+          )}
           {!isEditing && (
             <button className="secondary-button" onClick={() => handleSubmit(true)}>
               Save as Draft
             </button>
           )}
-          <button className="primary" onClick={() => handleSubmit()}>
-            {isEditing ? 'บันทึกการแก้ไข' : 'สร้างประกาศ (Public Link)'}
+          <button
+            className="primary"
+            onClick={() => (step < 3 ? handleStep(step + 1) : setIsSaveModalOpen(true))}
+          >
+            {step < 3 ? (
+              <>
+                ถัดไป <CaretRight />
+              </>
+            ) : isEditing ? (
+              'บันทึกการแก้ไข'
+            ) : (
+              'สร้างประกาศ (Public Link)'
+            )}
           </button>
         </div>
       </footer>

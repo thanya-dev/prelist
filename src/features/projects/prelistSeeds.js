@@ -87,4 +87,23 @@ export const PRELIST_REVIEWERS = [
     province: 'กรุงเทพมหานคร',
     status: 'Pending',
   },
+  ...Array.from({ length: 96 }).map((_, i) => ({
+    id: 10 + i,
+    username: `mock_reviewer_${i + 1}`,
+    platform: i % 3 === 0 ? 'instagram' : i % 3 === 1 ? 'tiktok' : 'facebook',
+    followers: Math.floor(Math.random() * 50000) + 1000,
+    likes: Math.floor(Math.random() * 5000) + 100,
+    age: 20 + (i % 15),
+    gender: i % 2 === 0 ? 'FEMALE' : 'MALE',
+    images: [
+      `https://picsum.photos/seed/mock${i}_1/300/300`,
+      `https://picsum.photos/seed/mock${i}_2/300/300`,
+      `https://picsum.photos/seed/mock${i}_3/300/300`,
+    ],
+    engageLv: i % 4 === 0 ? 'EXCELLENT' : 'GOOD',
+    reviewed: Math.floor(Math.random() * 10),
+    estReach: Math.floor(Math.random() * 10000) + 500,
+    province: 'กรุงเทพมหานคร',
+    status: 'Pending',
+  })),
 ];

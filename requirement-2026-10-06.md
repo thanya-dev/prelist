@@ -112,12 +112,13 @@ PM / Buyer ต้องกรอกข้อมูลแบรนด์และ
 ## Fields & Validation
 | Field Name | Type | Rules / Validation | Required |
 |---|---|---|---|
-| Logo (Cover Image) | Image (PNG/JPG/JPEG) | ขนาดไฟล์ไม่เกิน 3 MB | Yes |
+| Logo (Cover Image) | Image | ขนาด 120x120px, PNG/JPG ไม่เกิน 3 MB | Yes |
 | Project Name | Text | - | Yes |
-| Brand | Text | - | Yes |
-| Brief IDs | Array of String | รูปแบบ Prefix 3 ตัวอักษร + ปีค.ศ. 4 หลัก + เดือน 2 หลัก + ลำดับ 3 หลัก (เช่น NRI202610001) ห้ามซ้ำในระบบ | Yes (อย่างน้อย 1) |
-| Product Option: Name | Text | - | Yes (ถ้ามีการเพิ่ม Product Option) |
-| Product Option: Image | Image (PNG/JPG/JPEG) | ต้องมีรูปภาพ | Yes (ถ้ามีการเพิ่ม Product Option) |
+| Brand | Text | Free-text, ห้ามเว้นว่างหรือมีแต่ Space | Yes |
+| Brief IDs | Array of String | รูปแบบ XXXYYYYMMNNN (3 ตัวอักษร, ปี 4 หลัก, เดือน 2 หลัก, ลำดับ 3 หลัก) ห้ามซ้ำ | Yes (อย่างน้อย 1) |
+| Product Option: Name | Text | - | Yes (ถ้าเพิ่ม Product) |
+| Product Option: Image | Image | PNG/JPG/JPEG/AVIF ไม่เกิน 3 MB | Yes (ถ้าเพิ่ม Product) |
+| Product Option: Description | Text | - | No |
 
 ## User Flow
 1. คลิก "สร้างบรีฟ" จาก Brief List หรือ "แก้ไขบรีฟ" จาก Brief Detail
@@ -185,11 +186,21 @@ PM / Buyer ต้องกรอกข้อมูลแบรนด์และ
 ## Fields & Validation
 | Field Name | Type | Rules / Validation | Required |
 |---|---|---|---|
-| Campaign Title | Text | - | Yes (บังคับสำหรับ Save as Draft ด้วย) |
-| Project Name | Text | ดึงค่าจาก Brief ต้นทาง | Yes (สำหรับ Publish) |
-| Brand | Text | ดึงค่าจาก Brief ต้นทาง | Yes (สำหรับ Publish) |
-| Cover Image | Image | ดึงค่าจาก Brief ต้นทาง | Yes (สำหรับ Publish) |
+| Campaign Title | Text | - | Yes (บังคับตั้งแต่ Draft) |
+| Campaign Subtitle | Text | - | No |
+| Confidential Title | Text | แสดงสำหรับนักรีวิวที่รอพิจารณาหรือถูก Reject | Yes (ถ้าเป็น Confidential) |
+| Confidential Subtitle | Text | แสดงสำหรับนักรีวิวที่รอพิจารณาหรือถูก Reject | No |
+| Project Name | Text | อ่านอย่างเดียว ดึงค่าจาก Brief | - |
+| Brand | Text | อ่านอย่างเดียว ดึงค่าจาก Brief (ไม่ให้แก้ไขที่ประกาศ) | - |
+| Brand Logo | Image | ดึงจาก Brief หรืออัปโหลดใหม่ | Yes (สำหรับ Publish) |
+| Owner / Assign Buyer | Text | เริ่มต้นจาก Email ของผู้สร้าง | Yes (สำหรับ Publish) |
 | Campaign Type | Radio | เลือกได้ 1 ค่า (Normal, Confidential, Private) | Yes (สำหรับ Publish) |
+| Short Brief | Text | - | No |
+| Reference Brief | File / Link | เอกสารแนบหรือลิงก์อ้างอิง | No |
+| Compensation Options | Radio | งบประมาณ หรือ สินค้า | Yes (สำหรับ Publish) |
+| Product / Benefit | Dropdown/Text | เลือกรายการจาก Brief หรือระบุเอง (Other) | Yes (สำหรับ Publish) |
+| Reward Points Type | Radio | Fix point / Auto point | Yes (สำหรับ Publish) |
+| Reward Points | Number | จำนวนแต้มสะสม | Yes (สำหรับ Publish) |
 
 ## User Flow
 1. กดปุ่ม สร้างประกาศ จาก Brief Detail ต้นทาง
@@ -326,9 +337,9 @@ PM / Buyer ต้องกรอกข้อมูลแบรนด์และ
 ## Fields & Validation
 | Field Name | Type | Rules / Validation | Required |
 |---|---|---|---|
-| Apply Start Date | Date | รูปแบบ ISO YYYY-MM-DD | Yes (สำหรับ Publish) |
-| Deadline (Apply End Date) | Date | Deadline ≥ Apply Start Date | Yes (สำหรับ Publish) |
-| Start Date (Campaign) | Date | Start Date ≥ Deadline | Yes (สำหรับ Publish) |
+| Apply Start Date | Date | รูปแบบ ISO YYYY-MM-DD (ไม่บังคับ/ซ่อน ถ้าเป็น Private) | Yes (สำหรับ Publish ยกเว้น Private) |
+| Deadline (Apply End Date) | Date | Deadline ≥ Apply Start Date (ไม่บังคับ/ซ่อน ถ้าเป็น Private) | Yes (สำหรับ Publish ยกเว้น Private) |
+| Start Date (Campaign) | Date | Start Date ≥ Deadline (ถ้ามี) | Yes (สำหรับ Publish) |
 | End Date (Campaign) | Date | End Date ≥ Start Date | Yes (สำหรับ Publish) |
 
 ## User Flow

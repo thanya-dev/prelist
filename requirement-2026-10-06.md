@@ -1,3 +1,16 @@
+# Table of Contents (สารบัญ)
+- [[Story 1] Brief Management: List & Details](#story-1-brief-management-list--details)
+- [[Story 2] Centralized Brief Setup: Create & Edit](#story-2-centralized-brief-setup-create--edit)
+- [[Story 3] Job Posting Workflow: Draft & Publish](#story-3-job-posting-workflow-draft--publish)
+- [[Story 4] Job Posting: Creator Criteria Setup](#story-4-job-posting-creator-criteria-setup)
+- [[Story 5] Job Posting: Campaign Periods Setup](#story-5-job-posting-campaign-periods-setup)
+- [[Story 6] Job Posting: Detail View & Engagement Tracking](#story-6-job-posting-detail-view--engagement-tracking)
+- [[Story 7] Reviewer Management: Selection & Export](#story-7-reviewer-management-selection--export)
+- [[Story 8] Campaign Task: Influencer Import & Management](#story-8-campaign-task-influencer-import--management)
+- [[Story 9] Global Navigation: Sidebar Reorganization](#story-9-global-navigation-sidebar-reorganization)
+
+---
+
 # [Story 1] Brief Management: List & Details
 
 ## Business Problem
@@ -55,8 +68,8 @@ PM / Buyer ไม่สามารถดูภาพรวมและติด
 
 ## References
 - **Flow:** [Link / Soon]
-- **Prototype:** [Link / Soon]
-- **Design:** [Link / Soon]
+- **Prototype:** https://prelist-mu.vercel.app/
+- **Design:** https://github.com/thanya-dev/prelist/tree/main
 
 ---
 
@@ -117,8 +130,8 @@ PM / Buyer ต้องกรอกข้อมูลแบรนด์และ
 
 ## References
 - **Flow:** [Link / Soon]
-- **Prototype:** [Link / Soon]
-- **Design:** [Link / Soon]
+- **Prototype:** https://prelist-mu.vercel.app/
+- **Design:** https://github.com/thanya-dev/prelist/tree/main
 
 ---
 
@@ -179,8 +192,8 @@ PM / Buyer ต้องกรอกข้อมูลแบรนด์และ
 
 ## References
 - **Flow:** [Link / Soon]
-- **Prototype:** [Link / Soon]
-- **Design:** [Link / Soon]
+- **Prototype:** https://prelist-mu.vercel.app/
+- **Design:** https://github.com/thanya-dev/prelist/tree/main
 
 ---
 
@@ -239,8 +252,8 @@ PM / Buyer ต้องกรอกข้อมูลแบรนด์และ
 
 ## References
 - **Flow:** [Link / Soon]
-- **Prototype:** [Link / Soon]
-- **Design:** [Link / Soon]
+- **Prototype:** https://prelist-mu.vercel.app/
+- **Design:** https://github.com/thanya-dev/prelist/tree/main
 
 ---
 
@@ -295,8 +308,8 @@ PM / Buyer ต้องกรอกข้อมูลแบรนด์และ
 
 ## References
 - **Flow:** [Link / Soon]
-- **Prototype:** [Link / Soon]
-- **Design:** [Link / Soon]
+- **Prototype:** https://prelist-mu.vercel.app/
+- **Design:** https://github.com/thanya-dev/prelist/tree/main
 
 ---
 
@@ -352,8 +365,8 @@ PM / Buyer ต้องกรอกข้อมูลแบรนด์และ
 
 ## References
 - **Flow:** [Link / Soon]
-- **Prototype:** [Link / Soon]
-- **Design:** [Link / Soon]
+- **Prototype:** https://prelist-mu.vercel.app/
+- **Design:** https://github.com/thanya-dev/prelist/tree/main
 
 ---
 
@@ -418,8 +431,8 @@ PM / Buyer ไม่สามารถจัดการรายชื่อผ
 
 ## References
 - **Flow:** [Link / Soon]
-- **Prototype:** [Link / Soon]
-- **Design:** [Link / Soon]
+- **Prototype:** https://prelist-mu.vercel.app/
+- **Design:** https://github.com/thanya-dev/prelist/tree/main
 
 ---
 
@@ -478,8 +491,8 @@ PM / Buyer ไม่สามารถจัดการรายชื่อผ
 
 ## References
 - **Flow:** [Link / Soon]
-- **Prototype:** [Link / Soon]
-- **Design:** [Link / Soon]
+- **Prototype:** https://prelist-mu.vercel.app/
+- **Design:** https://github.com/thanya-dev/prelist/tree/main
 
 ---
 
@@ -529,5 +542,5 @@ PM / Buyer ไม่สามารถจัดการรายชื่อผ
 
 ## References
 - **Flow:** [Link / Soon]
-- **Prototype:** [Link / Soon]
-- **Design:** [Link / Soon]
+- **Prototype:** https://prelist-mu.vercel.app/
+- **Design:** https://github.com/thanya-dev/prelist/tree/main

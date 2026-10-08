@@ -217,7 +217,13 @@ export function PostingCalendarList({ briefId, tableOnly = false, onCreate }) {
                       <td>
                         <button
                           onClick={() => openJob(job)}
-                          style={{ textAlign: 'left', fontWeight: 'bold', color: 'var(--color-primary)', padding: 0, margin: 0 }}
+                          style={{
+                            textAlign: 'left',
+                            fontWeight: 'bold',
+                            color: 'var(--color-primary)',
+                            padding: 0,
+                            margin: 0,
+                          }}
                         >
                           {job.name}
                         </button>
@@ -247,7 +253,14 @@ export function PostingCalendarList({ briefId, tableOnly = false, onCreate }) {
                       </td>
                       <td>{(job.applicants || 0).toLocaleString('th-TH')} คน</td>
                       <td>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'stretch' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '8px',
+                            alignItems: 'stretch',
+                          }}
+                        >
                           <div
                             className="relative group inline-block w-full"
                             style={{ cursor: !isActive ? 'not-allowed' : 'pointer' }}

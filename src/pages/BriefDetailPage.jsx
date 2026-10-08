@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Skeleton } from '../components/ui/Skeleton.jsx';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { ArrowLeft, CaretRight } from '@phosphor-icons/react';
-import { getJobPostings } from '../features/job-postings/jobPostingApi.js';
 import { getBriefById } from '../features/briefs/briefApi.js';
 import { BriefSummary } from '../features/briefs/BriefSummary.jsx';
 import { Sidebar } from '../components/layout/Sidebar.jsx';
@@ -34,10 +33,6 @@ export function BriefDetailPage({ onBack }) {
       setSearchParams(next, { replace: true });
     }
   };
-  const postingCount = getJobPostings().filter(
-    (posting) => posting.brief === (brief?.id || id),
-  ).length;
-
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const t = setTimeout(() => setIsLoading(false), 800);
@@ -66,7 +61,7 @@ export function BriefDetailPage({ onBack }) {
           }}
         />
       )}
-      <Sidebar onList={onBack} />
+      <Sidebar />
       <main className="list-main lifecycle-detail brief-detail-page">
         {isLoading ? (
           <div className="space-y-6 mt-4">

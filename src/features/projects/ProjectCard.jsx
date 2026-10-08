@@ -1,3 +1,4 @@
+import { PlatformLogo } from '../../components/shared/PlatformLogo.jsx';
 import { CaretRight, NotePencil, User, UsersThree } from '@phosphor-icons/react';
 import { BrandMark } from '../../components/shared/BrandMark.jsx';
 export function ProjectCard({ project, onOpen, onEdit }) {
@@ -40,7 +41,10 @@ export function ProjectCard({ project, onOpen, onEdit }) {
                 </span>
               )}
               {project.platforms?.map((platform) => (
-                <span key={platform}>{platform}</span>
+                <span key={platform} className="inline-flex items-center gap-2">
+                  <PlatformLogo platform={platform} />
+                  {platform}
+                </span>
               ))}
             </div>
           </>

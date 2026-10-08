@@ -1,3 +1,4 @@
+import { PlatformLogo } from '../../components/shared/PlatformLogo.jsx';
 import { JobPostingFormModal } from './JobPostingFormModal.jsx';
 import { useReviewerDecisions } from './useReviewerDecisions.js';
 import { useState, useEffect } from 'react';
@@ -9,22 +10,13 @@ import {
   Check,
   CheckCircle,
   Copy,
-  CurrencyDollar,
   FileText,
-  Eye,
-  LinkSimple,
   List,
-  NotePencil,
-  Plus,
   SquaresFour,
   Storefront,
   User,
   Users,
-  UsersThree,
   X,
-  InstagramLogo,
-  TiktokLogo,
-  FacebookLogo,
   Heart,
   Cake,
   GenderMale,
@@ -60,9 +52,7 @@ export function JobPostingDetail() {
   const [activeTab, setActiveTab] = useState('สมัคร');
   const [viewMode, setViewMode] = useState('list');
   const navigate = useNavigate();
-  const { decisions, setDecisions, decide, sendToSales, decisionFor } = useReviewerDecisions(
-    job.id,
-  );
+  const { setDecisions, decide, decisionFor } = useReviewerDecisions(job.id);
   const matchesTab = (item, tab) => {
     const status = decisionFor(item)?.status;
     if (tab === 'สมัคร') return !status || status === 'pending';
@@ -602,7 +592,12 @@ export function JobPostingDetail() {
                               href="https://www.facebook.com/buddyreview"
                               target="_blank"
                               rel="noopener noreferrer"
-                              style={{ position: 'relative', display: 'inline-block', width: '40px', height: '40px' }}
+                              style={{
+                                position: 'relative',
+                                display: 'inline-block',
+                                width: '40px',
+                                height: '40px',
+                              }}
                             >
                               <img
                                 src={item.images[0]}
@@ -628,9 +623,7 @@ export function JobPostingDetail() {
                                   boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
                                 }}
                               >
-                                {item.platform === 'instagram' && <InstagramLogo size={14} weight="fill" color="#E1306C" />}
-                                {item.platform === 'tiktok' && <TiktokLogo size={14} weight="fill" color="#000000" />}
-                                {item.platform === 'facebook' && <FacebookLogo size={14} weight="fill" color="#1877F2" />}
+                                <PlatformLogo platform={item.platform} size={14} />
                               </div>
                             </a>
                             <div>
@@ -645,7 +638,8 @@ export function JobPostingDetail() {
                                 </a>
                               </div>
                               <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-                                สมัครเมื่อ 12/09/2026 14:{(10 + ((item.sourceIndex || 0) % 50)).toString().padStart(2, '0')}
+                                สมัครเมื่อ 12/09/2026 14:
+                                {(10 + ((item.sourceIndex || 0) % 50)).toString().padStart(2, '0')}
                               </div>
                             </div>
                           </div>
@@ -767,15 +761,7 @@ export function JobPostingDetail() {
                           disabled={!canDecide(item)}
                           onChange={() => toggleReviewer(item.id)}
                         />
-                        {item.platform === 'instagram' && (
-                          <InstagramLogo size={20} weight="fill" color="#E1306C" />
-                        )}
-                        {item.platform === 'tiktok' && (
-                          <TiktokLogo size={20} weight="fill" color="#000000" />
-                        )}
-                        {item.platform === 'facebook' && (
-                          <FacebookLogo size={20} weight="fill" color="#1877F2" />
-                        )}
+                        <PlatformLogo platform={item.platform} size={20} />
                         <h3
                           style={{
                             margin: 0,
@@ -945,7 +931,8 @@ export function JobPostingDetail() {
                               fontWeight: '500',
                             }}
                           >
-                            12/09/2026 14:{(10 + ((item.sourceIndex || 0) % 50)).toString().padStart(2, '0')}
+                            12/09/2026 14:
+                            {(10 + ((item.sourceIndex || 0) % 50)).toString().padStart(2, '0')}
                           </span>
                         </div>
                       </div>

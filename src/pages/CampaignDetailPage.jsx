@@ -11,7 +11,7 @@ import { getCampaignAnnouncementReviewers } from '../features/campaigns/campaign
 import { CampaignInfluencerList } from '../features/campaigns/CampaignInfluencerList.jsx';
 import { CAMPAIGN_INFLUENCERS } from '../features/campaigns/campaignInfluencerSeeds.js';
 import { InfluencerList } from '../features/campaigns/InfluencerList.jsx';
-export function CampaignDetailPage({ onBack }) {
+export function CampaignDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const campaign = getCampaignById(id);

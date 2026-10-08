@@ -105,7 +105,10 @@ export function BriefListPage() {
         <section className="project-list grid gap-5" aria-label="รายการ Brief">
           {isLoading ? (
             Array.from({ length: 3 }).map((_, i) => (
-              <article key={`skeleton-${i}`} className="project-card brief-card gap-6 pt-5 pr-8 pb-5 pl-5 max-[760px]:gap-4 max-[760px]:p-3">
+              <article
+                key={`skeleton-${i}`}
+                className="project-card brief-card gap-6 pt-5 pr-8 pb-5 pl-5 max-[760px]:gap-4 max-[760px]:p-3"
+              >
                 <div className="flex flex-1 items-start gap-4">
                   <Skeleton className="w-24 h-24 max-[760px]:w-16 max-[760px]:h-16 shrink-0" />
                   <div className="flex-1 min-w-0" style={{ paddingTop: '8px' }}>

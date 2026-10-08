@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { NotePencil, Users, Eye, Copy, Check } from '@phosphor-icons/react';
 import { AnnouncementStatus } from './AnnouncementStatus.jsx';
 import { useCopy } from '../../hooks/useCopy.js';
@@ -20,7 +19,12 @@ export function JobPostingSummary({ job, onEdit }) {
       )}
       <div className="project-info">
         <div className="project-title-row">
-          <h1 className="posting-summary-title" style={{ color: 'var(--color-primary)', fontWeight: 'bold' }}>{job.name?.trim() || '-'}</h1>
+          <h1
+            className="posting-summary-title"
+            style={{ color: 'var(--color-primary)', fontWeight: 'bold' }}
+          >
+            {job.name?.trim() || '-'}
+          </h1>
           <AnnouncementStatus
             value={
               job.status === 'Draft' || job.status === 'แบบร่าง'
@@ -46,7 +50,12 @@ export function JobPostingSummary({ job, onEdit }) {
               onClick={() => copy(value, value, `คัดลอก ${label}: ${value} สำเร็จ`)}
             >
               {label}: {value || '-'}
-              {value && (copiedId === value ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} aria-hidden="true" />)}
+              {value &&
+                (copiedId === value ? (
+                  <Check size={14} className="text-emerald-500" />
+                ) : (
+                  <Copy size={14} aria-hidden="true" />
+                ))}
             </button>
           ))}
         </div>

@@ -1,3 +1,4 @@
+import { PlatformLogo } from '../../components/shared/PlatformLogo.jsx';
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
@@ -22,7 +23,6 @@ import { Sidebar } from '../../components/layout/Sidebar.jsx';
 export function ProjectDetails({ project, onBack, onEdit }) {
   const navigate = useNavigate();
   const [tab, setTab] = useState('Project details');
-  const [prelistFilter, setPrelistFilter] = useState('All');
   const isLightProject = ['Draft', 'Prelist'].includes(project.status);
   const handleTabClick = (label) => {
     if (label === 'Expense report') {
@@ -40,7 +40,7 @@ export function ProjectDetails({ project, onBack, onEdit }) {
   };
   return (
     <div className="app-shell">
-      <Sidebar onList={onBack} />
+      <Sidebar />
       <main className="list-main lifecycle-detail">
         <div className="breadcrumbs">
           Management <CaretRight />{' '}
@@ -243,7 +243,7 @@ export function ProjectDetails({ project, onBack, onEdit }) {
                   fontSize: '15px',
                 }}
               >
-                Facebook Page
+                <PlatformLogo platform="Facebook Page" /> Facebook Page
               </p>
               <div
                 style={{

@@ -59,12 +59,20 @@ export function JobPostingFormModal({ postingId, briefId, copyFromId, onClose, o
         onKeyDown={handleKeyDown}
       >
         <header className="posting-form-modal-header">
-          <h2 id="posting-form-modal-title">{postingId ? 'แก้ไขประกาศ' : (copyFromId ? 'ทำสำเนาประกาศ' : 'สร้างประกาศ')}</h2>
+          <h2 id="posting-form-modal-title">
+            {postingId ? 'แก้ไขประกาศ' : copyFromId ? 'ทำสำเนาประกาศ' : 'สร้างประกาศ'}
+          </h2>
           <button className="icon-btn" type="button" aria-label="ปิดฟอร์มประกาศ" onClick={onClose}>
             <X size={22} />
           </button>
         </header>
-        <JobPostingForm postingId={postingId} briefId={briefId} copyFromId={copyFromId} onClose={onClose} onSave={onSave} />
+        <JobPostingForm
+          postingId={postingId}
+          briefId={briefId}
+          copyFromId={copyFromId}
+          onClose={onClose}
+          onSave={onSave}
+        />
       </section>
     </div>,
     document.body,

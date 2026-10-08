@@ -1,6 +1,4 @@
 import { Users, NotePencil, Square, CheckSquare, Circle, RadioButton } from '@phosphor-icons/react';
-import lemon8Logo from './assets/lemon8.png';
-import facebookPageLogo from './assets/facebookPage.png';
 import { PlatformLogo } from '../../components/shared/PlatformLogo.jsx';
 export const CREATOR_PLATFORM_CONTENT_TYPES = {
   TikTok: ['Post', 'Repost', 'Comment', 'Live'],
@@ -191,16 +189,7 @@ export function CreatorCriteriaFields({
               )}
               <div>
                 <div className="creator-platform-name">
-                  {platform === 'Lemon8' || platform === 'Facebook Page' ? (
-                    <img
-                      aria-hidden="true"
-                      alt=""
-                      className="h-6 w-6 shrink-0 rounded-full"
-                      src={platform === 'Lemon8' ? lemon8Logo : facebookPageLogo}
-                    />
-                  ) : (
-                    <PlatformLogo platform={platform} />
-                  )}
+                  <PlatformLogo platform={platform} />
                   {platform}
                 </div>
                 <small>

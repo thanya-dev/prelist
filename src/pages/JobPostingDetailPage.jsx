@@ -14,7 +14,7 @@ export function JobPostingDetailPage(props) {
   if (isLoading) {
     return (
       <div className="app-shell">
-        <Sidebar onList={props.onBack} />
+        <Sidebar />
         <main className="list-main lifecycle-detail">
           <div className="space-y-6 mt-4">
             <div className="flex gap-2">
@@ -22,7 +22,7 @@ export function JobPostingDetailPage(props) {
               <Skeleton className="w-32 h-6" />
             </div>
             <Skeleton className="w-20 h-8 mt-2" />
-            
+
             <div className="flex justify-between items-center mb-6">
               <Skeleton className="w-40 h-8" />
               <div className="flex gap-2">

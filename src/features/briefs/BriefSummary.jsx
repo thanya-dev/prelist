@@ -1,6 +1,5 @@
 import { NotePencil, CopySimple, Check } from '@phosphor-icons/react';
 import { useCopy } from '../../hooks/useCopy.js';
-import { BrandMark } from '../../components/shared/BrandMark.jsx';
 
 export function BriefSummary({ brief, onOpen, onEdit, children }) {
   const Heading = onOpen ? 'h2' : 'h1';
@@ -10,9 +9,11 @@ export function BriefSummary({ brief, onOpen, onEdit, children }) {
   const { copiedId, copy } = useCopy();
   return (
     <>
-
       <div className="project-info min-w-0">
-        <Heading className="brief-summary-title" style={{ color: 'var(--color-primary)', fontWeight: 'bold' }}>
+        <Heading
+          className="brief-summary-title"
+          style={{ color: 'var(--color-primary)', fontWeight: 'bold' }}
+        >
           {onOpen ? (
             <button
               className="brief-title"

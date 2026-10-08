@@ -11,7 +11,7 @@ import {
 } from '@phosphor-icons/react';
 import { getJobPostings } from '../job-postings/jobPostingApi.js';
 import { getBriefs } from '../briefs/briefApi.js';
-import { BrandMark } from '../../components/shared/BrandMark.jsx';
+
 import { Field } from '../../components/ui/Field.jsx';
 
 const PAGE_SIZE = 6;
@@ -135,21 +135,28 @@ export function CampaignPostingSource({
                     type="checkbox"
                     className="m-0 h-4 w-4 shrink-0"
                     style={{ accentColor: '#3286d3', marginTop: '2px' }}
-                    checked={visiblePostings.length > 0 && visiblePostings.every(p => selectedIds.has(p.id))}
+                    checked={
+                      visiblePostings.length > 0 &&
+                      visiblePostings.every((p) => selectedIds.has(p.id))
+                    }
                     onChange={() => {
-                      const visibleIds = new Set(visiblePostings.map(p => p.id));
-                      const allVisibleSelected = visiblePostings.every(p => selectedIds.has(p.id));
+                      const visibleIds = new Set(visiblePostings.map((p) => p.id));
+                      const allVisibleSelected = visiblePostings.every((p) =>
+                        selectedIds.has(p.id),
+                      );
                       if (allVisibleSelected) {
-                        onSelect(sourcePostings.filter(p => !visibleIds.has(p.id)));
+                        onSelect(sourcePostings.filter((p) => !visibleIds.has(p.id)));
                       } else {
-                        const newSelections = visiblePostings.filter(p => !selectedIds.has(p.id));
+                        const newSelections = visiblePostings.filter((p) => !selectedIds.has(p.id));
                         onSelect([...sourcePostings, ...newSelections]);
                       }
                     }}
                   />
                   เลือกหน้านี้
                 </label>
-                <span className="text-muted border-l border-gray-300 pl-3">ทั้งหมด {linkedPostings.length} ประกาศ</span>
+                <span className="text-muted border-l border-gray-300 pl-3">
+                  ทั้งหมด {linkedPostings.length} ประกาศ
+                </span>
               </div>
               {sourcePostings.length > 0 && (
                 <button type="button" className="cw-picker-clear" onClick={() => onSelect([])}>
@@ -179,7 +186,8 @@ export function CampaignPostingSource({
                       <span className="cw-picker-title">{posting.name}</span>
                       <span className="cw-picker-meta">
                         {posting.subtitle && <span className="block">{posting.subtitle}</span>}
-                        {posting.id} · นักรีวิวที่ลูกค้าเลือก: {posting.reviewers || Math.floor((posting.applicants || 0) * 0.4)} คน
+                        {posting.id} · นักรีวิวที่ลูกค้าเลือก:{' '}
+                        {posting.reviewers || Math.floor((posting.applicants || 0) * 0.4)} คน
                       </span>
                     </span>
                   </label>

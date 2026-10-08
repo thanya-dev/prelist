@@ -1,34 +1,32 @@
-import { FacebookLogo, InstagramLogo, TiktokLogo, YoutubeLogo, XLogo } from '@phosphor-icons/react';
-
 const PLATFORM_LOGOS = {
-  TikTok: { icon: TiktokLogo, background: '#111111', color: '#ffffff' },
-  Instagram: {
-    icon: InstagramLogo,
-    background: 'linear-gradient(135deg, #833ab4, #e1306c, #fcb045)',
-    color: '#ffffff',
-  },
-  Facebook: { icon: FacebookLogo, background: '#1877f2', color: '#ffffff' },
-  'Facebook Page': { icon: FacebookLogo, background: '#1877f2', color: '#ffffff' },
-  YouTube: { icon: YoutubeLogo, background: '#ff0000', color: '#ffffff' },
-  Lemon8: { background: '#ffef00', color: '#111111' },
-  X: { icon: XLogo, background: '#111111', color: '#ffffff' },
+  instagram: 'Instagram.png',
+  tiktok: 'Tiktok.png',
+  facebook: 'Facebook.png',
+  facebookpage: 'FB Page.png',
+  fbpage: 'FB Page.png',
+  youtube: 'Youtube.png',
+  lemon8: 'Lemon8.png',
+  twitter: 'Twitter.png',
+  x: 'x.png',
 };
 
-export function PlatformLogo({ platform }) {
-  const logo = PLATFORM_LOGOS[platform];
+export function PlatformLogo({ platform, size = 24 }) {
+  const logo =
+    PLATFORM_LOGOS[
+      String(platform || '')
+        .toLowerCase()
+        .replace(/[\s_-]/g, '')
+    ];
   if (!logo) return null;
-  const Icon = logo.icon;
   return (
-    <span
+    <img
+      src={`/assets/social/${encodeURIComponent(logo)}`}
+      alt=""
       aria-hidden="true"
-      className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
-      style={{ background: logo.background, color: logo.color }}
-    >
-      {Icon ? (
-        <Icon size={16} weight="fill" style={{ color: logo.color }} />
-      ) : (
-        <span className="text-[7px] font-bold">Lemon8</span>
-      )}
-    </span>
+      className="inline-block shrink-0 rounded-full object-contain align-middle"
+      width={size}
+      height={size}
+      style={{ width: size, height: size }}
+    />
   );
 }

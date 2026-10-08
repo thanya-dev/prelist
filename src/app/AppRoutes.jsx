@@ -41,10 +41,7 @@ export function AppRoutes({ projects, navigate, onOpenProject, onEditProject }) 
           <BriefDetailPage key={window.location.pathname} onBack={() => navigate('/briefs')} />
         }
       />
-      <Route
-        path="/campaigns/:id"
-        element={<CampaignDetailPage onBack={() => navigate('/projects/PRJ2026090022')} />}
-      />
+      <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
       <Route path="/campaigns/create" element={<CampaignFormPage key="create-campaign" />} />
       <Route
         path="/campaigns/:id/edit"

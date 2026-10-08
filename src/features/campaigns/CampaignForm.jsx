@@ -26,7 +26,7 @@ import {
 import { LockSimple } from '@phosphor-icons/react';
 import { Field } from '../../components/ui/Field.jsx';
 import { CreatorCriteriaFields } from '../job-postings/CreatorCriteriaFields.jsx';
-import { DEFAULT_CAMPAIGN, getCampaignById, saveCampaign } from './campaignApi.js';
+import { DEFAULT_CAMPAIGN, getCampaignById } from './campaignApi.js';
 import { SEED_PROJECTS } from '../projects/projectSeeds.js';
 import { getCurrentUser } from '../../lib/currentUser.js';
 const STEPS = [
@@ -164,94 +164,7 @@ export function CampaignForm() {
     setError('');
     window.scrollTo(0, 0);
   };
-  const handleNext = () => {
-    if (step === 0) {
-      let hasError = false;
-      let newErrors = {};
 
-      if (!values.assignOp) {
-        newErrors.assignOp = 'กรุณาเลือก Assign OP';
-        hasError = true;
-      }
-      if (!values.group) {
-        newErrors.group = 'กรุณาเลือก Group';
-        hasError = true;
-      }
-
-      if (sourceBriefId && !values.sourcePostings?.length) {
-        setSourcePostingError(`กรุณาเลือกประกาศใน ${sourceBriefId}`);
-        sourcePostingRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        hasError = true;
-      }
-
-      setFormErrors(newErrors);
-
-      if (hasError) return;
-
-      return handleStep(1);
-    }
-    if (
-      !Number.isInteger(Number(values.target)) ||
-      Number(values.target) < 1 ||
-      values.targetPost === '' ||
-      !Number.isInteger(Number(values.targetPost)) ||
-      Number(values.targetPost) < 0
-    )
-      return setError(
-        'กรุณาระบุ Target influencer อย่างน้อย 1 คน และ Target post ตั้งแต่ 0 เป็นจำนวนเต็ม',
-      );
-    if (
-      !values.sourcePostings?.length &&
-      ((values.applicationStart &&
-        values.applicationEnd &&
-        values.applicationStart > values.applicationEnd) ||
-        (values.campaignStart && values.campaignEnd && values.campaignStart > values.campaignEnd))
-    )
-      return setError('วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่มต้น');
-    if (
-      step === 1 &&
-      !values.sourcePostings?.length &&
-      (!values.name.trim() ||
-        !values.subtitle.trim() ||
-        Number(values.target) < 1 ||
-        !values.platforms.length ||
-        !values.genders.length)
-    )
-      return setError('กรุณาระบุชื่อ, Subtitle, Target influencer, เพศ และช่องทางรีวิว');
-    if (!values.briefFiles?.length) {
-      let hasValidBriefLink = false;
-      try {
-        hasValidBriefLink = ['http:', 'https:'].includes(new URL(values.briefLink.trim()).protocol);
-      } catch {
-        /* An empty or invalid URL cannot satisfy the required brief. */
-      }
-      if (!hasValidBriefLink) {
-        setSelectedBriefError(
-          values.briefLink.trim()
-            ? 'กรุณาระบุลิงก์บรีฟที่ถูกต้อง (http:// หรือ https://) หรือแนบไฟล์บรีฟ'
-            : 'กรุณาแนบไฟล์บรีฟหรือระบุลิงก์บรีฟอย่างน้อย 1 อย่าง',
-        );
-        selectedBriefRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
-    }
-    setSelectedBriefError('');
-    try {
-      const now = new Date().toISOString();
-      const campaign = {
-        ...values,
-        id: id || `campaign-${Date.now()}`,
-        createdAt: values.createdAt || now,
-        createdBy: values.createdBy || getCurrentUser().email,
-        updatedAt: now,
-        updatedBy: getCurrentUser().email,
-      };
-      saveCampaign(campaign);
-      navigate(`/campaigns/${campaign.id}`);
-    } catch {
-      setError('บันทึกไม่สำเร็จ พื้นที่จัดเก็บอาจเต็ม กรุณาลดจำนวนไฟล์แล้วลองใหม่');
-    }
-  };
   const renderChoices = (key, options) => (
     <div className="cw-choices">
       {options.map(([value, label, hint]) => (

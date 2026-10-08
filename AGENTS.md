@@ -392,3 +392,5 @@ Job Posting Detail fields stack labels above values on every viewport with an 8p
 Brief Detail announcement Table paginates filtered results at 10 postings per page with Previous/Next, page numbers and visible result range. Search/status changes reset to page 1; counts cover all matching results. Include additional clearly named mock announcements linked to NRI202609058 to demonstrate pagination.
 
 Brief Detail announcement heading/create action, filters, search, table and pagination sit directly on the page without an enclosing section card. Keep a single heading and the table’s own bounded scrolling surface.
+
+All social media platform icons across the website use the supplied files in `public/assets/social` through the shared `PlatformLogo` component. Preserve saved platform values and support legacy spelling/case aliases.

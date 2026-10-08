@@ -1,3 +1,4 @@
+import { PlatformLogo } from '../../components/shared/PlatformLogo.jsx';
 import { useState } from 'react';
 import {
   ArrowSquareOut,
@@ -15,8 +16,6 @@ import {
   UploadSimple,
   User,
   X,
-  InstagramLogo,
-  TiktokLogo,
   ChatCircle,
 } from '@phosphor-icons/react';
 import { getJobPostings } from '../job-postings/jobPostingApi.js';
@@ -417,6 +416,7 @@ export function InfluencerList() {
                     )
                   }
                 />
+                <PlatformLogo platform={name} size={20} />
                 {name}
               </label>
             ),
@@ -473,13 +473,7 @@ export function InfluencerList() {
                   </span>
                   <div>
                     <b>
-                      {item.platform === 'Instagram' ? (
-                        <InstagramLogo color="#d13d8e" />
-                      ) : item.platform === 'Tiktok' ? (
-                        <TiktokLogo />
-                      ) : (
-                        <span className="youtube-mark">▶</span>
-                      )}
+                      <PlatformLogo platform={item.platform} size={20} />
                       {item.name}
                     </b>
                     {action('Chat', item, <ChatCircle />, 'approved-chat purple')}

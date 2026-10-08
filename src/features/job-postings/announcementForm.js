@@ -52,31 +52,6 @@ export const ANNOUNCEMENT_PLATFORMS = [
   'X',
   'Lemon8',
 ];
-export const SCOPE_TEMPLATES = {
-  'Post / Reels': 'สร้างและเผยแพร่คอนเทนต์รีวิวสินค้าในรูปแบบ Post / Reels บนแพลตฟอร์มที่เลือก',
-  'Story / Short video / Live':
-    'สร้างคอนเทนต์รีวิวในรูปแบบ Story / Short video / Live บนแพลตฟอร์มที่เลือก',
-  'Share / Quote tweet': 'แชร์หรือ Quote tweet คอนเทนต์ของแคมเปญ พร้อมความคิดเห็นของนักรีวิว',
-  'Repost / Retweet / Reply / Comment':
-    'ร่วมเผยแพร่และแสดงความคิดเห็นต่อคอนเทนต์ของแคมเปญตามสโคปที่กำหนด',
-};
-export function generateTargetGroupName(criteria, platforms, min, max) {
-  return [
-    criteria.trim() || 'ไม่จำกัดคุณสมบัติพิเศษ',
-    platforms.length ? platforms.join(' / ') : 'ยังไม่เลือกแพลตฟอร์ม',
-    `${min === '' ? 'ไม่ระบุ' : Number(min).toLocaleString('th-TH')}–${max === '' ? 'ไม่ระบุ' : Number(max).toLocaleString('th-TH')} followers`,
-  ].join(' · ');
-}
-export function generateScopeOfWork(scope, platforms, note = '') {
-  const template = SCOPE_TEMPLATES[scope] || '';
-  return [
-    template && `${template}${platforms.length ? ` (${platforms.join(', ')})` : ''}`,
-    note.trim(),
-  ]
-    .filter(Boolean)
-    .join('\n');
-}
-
 export function getAnnouncementCriteria(posting) {
   return (
     posting.specialCriteriaOptions ??

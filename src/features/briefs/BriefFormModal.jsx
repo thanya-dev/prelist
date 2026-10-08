@@ -163,17 +163,33 @@ export function BriefFormModal({ brief = null, onClose, onSave }) {
             aria-modal="true"
             className="posting-save-dialog relative w-full max-w-[400px] bg-white rounded-xl p-6 shadow-xl"
           >
-            <button type="button" className="broadcast-close" onClick={() => setIsConfirmOpen(false)} aria-label="ปิด">
+            <button
+              type="button"
+              className="broadcast-close"
+              onClick={() => setIsConfirmOpen(false)}
+              aria-label="ปิด"
+            >
               <X size={22} />
             </button>
             <h2 className="posting-save-title">
               {isEditing ? 'ยืนยันบันทึกการแก้ไข' : 'ยืนยันสร้างบรีฟ'}
             </h2>
-            <div className="posting-save-preview" style={{ padding: '24px 0', textAlign: 'center' }}>
-              <p>{isEditing ? 'คุณต้องการบันทึกการแก้ไขบรีฟนี้ใช่หรือไม่?' : 'คุณต้องการสร้างบรีฟใหม่ใช่หรือไม่?'}</p>
+            <div
+              className="posting-save-preview"
+              style={{ padding: '24px 0', textAlign: 'center' }}
+            >
+              <p>
+                {isEditing
+                  ? 'คุณต้องการบันทึกการแก้ไขบรีฟนี้ใช่หรือไม่?'
+                  : 'คุณต้องการสร้างบรีฟใหม่ใช่หรือไม่?'}
+              </p>
             </div>
             <footer className="posting-save-actions flex gap-3 justify-end mt-4">
-              <button type="button" className="secondary-button" onClick={() => setIsConfirmOpen(false)}>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => setIsConfirmOpen(false)}
+              >
                 ยกเลิก
               </button>
               <button type="button" className="primary" onClick={handleConfirmSave}>

@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Folder, Megaphone, UserFocus, Compass } from '@phosphor-icons/react';
 import { getCurrentUser } from '../../lib/currentUser.js';
 import { Logo } from './Logo.jsx';
-export function Sidebar({ onList }) {
+export function Sidebar() {
   const currentUser = getCurrentUser();
   const navigate = useNavigate();
   const path = window.location.pathname;

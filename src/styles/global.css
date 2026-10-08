@@ -5826,3 +5826,26 @@
     font-style: italic;
   }
 }
+
+@layer components {
+  .brief-detail-page .posting-table {
+    min-width: 1000px;
+  }
+  .brief-detail-page .posting-table th:nth-child(2) {
+    min-width: 320px;
+  }
+  .brief-detail-page .posting-table th:nth-child(3) {
+    min-width: 200px;
+  }
+  .brief-detail-page .posting-table th:last-child {
+    min-width: 180px;
+  }
+  .brief-detail-page .posting-table td {
+    vertical-align: middle;
+  }
+  .brief-detail-page .posting-table-criteria {
+    min-width: 280px;
+    max-width: 360px;
+    overflow-wrap: anywhere;
+  }
+}

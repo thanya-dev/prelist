@@ -18,6 +18,9 @@ import { useCopy } from '../../hooks/useCopy.js';
 import { SEED_JOB_POSTINGS } from './jobPostingSeeds.js';
 import { getJobPostings } from './jobPostingApi.js';
 import { getRecruitmentPeriod } from './recruitmentStatuses.js';
+import { getAnnouncementCriteria } from './announcementForm.js';
+import { PlatformLogo } from '../../components/shared/PlatformLogo.jsx';
+
 const POSTINGS_PAGE_SIZE = 10;
 
 export function PostingCalendarList({ briefId, tableOnly = false, onCreate }) {
@@ -191,22 +194,17 @@ export function PostingCalendarList({ briefId, tableOnly = false, onCreate }) {
                 <tr>
                   <th style={{ width: '60px' }}>No.</th>
                   <th>ประกาศ</th>
+                  <th>Special Criteria</th>
                   <th>สถานะ</th>
-                  <th>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Eye size={18} /> เปิดดูประกาศ
-                    </div>
-                  </th>
-                  <th>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Users size={18} /> ผู้สมัคร
-                    </div>
-                  </th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedJobs.map((job, index) => {
+                  const criteria = getAnnouncementCriteria(job)
+                    .flatMap((criterion) => criterion.split(/\s*·\s*|\r?\n/))
+                    .map((criterion) => criterion.trim())
+                    .filter(Boolean);
                   const isActive =
                     job.status !== 'Draft' &&
                     job.status !== 'แบบร่าง' &&
@@ -215,18 +213,34 @@ export function PostingCalendarList({ briefId, tableOnly = false, onCreate }) {
                     <tr key={job.id}>
                       <td>{pageOffset + index + 1}</td>
                       <td>
-                        <button
-                          onClick={() => openJob(job)}
-                          style={{
-                            textAlign: 'left',
-                            fontWeight: 'bold',
-                            color: 'var(--color-primary)',
-                            padding: 0,
-                            margin: 0,
-                          }}
-                        >
-                          {job.name}
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => openJob(job)}
+                            style={{
+                              textAlign: 'left',
+                              fontWeight: 'bold',
+                              color: 'var(--color-primary)',
+                              padding: 0,
+                              margin: 0,
+                            }}
+                          >
+                            {job.name}
+                          </button>
+                          {job.platforms?.length ? (
+                            <div className="flex shrink-0 items-center gap-2" aria-label="Platform">
+                              {job.platforms.map((platform) => (
+                                <span
+                                  key={platform}
+                                  role="img"
+                                  aria-label={platform}
+                                  title={platform}
+                                >
+                                  <PlatformLogo platform={platform} size={16} />
+                                </span>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
                         <small style={{ display: 'block', color: '#64748b', marginBottom: '8px' }}>
                           {job.subtitle || job.brand}
                         </small>
@@ -244,14 +258,31 @@ export function PostingCalendarList({ briefId, tableOnly = false, onCreate }) {
                             <CopySimple size={12} weight="bold" />
                           )}
                         </button>
+                        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm leading-5 text-[#64748b]">
+                          <span className="inline-flex items-center gap-2">
+                            <Eye size={16} /> เปิดดูประกาศ:{' '}
+                            {(job.viewerCount ?? 0).toLocaleString('th-TH')} คน
+                          </span>
+                          <span className="inline-flex items-center gap-2">
+                            <Users size={16} /> ผู้สมัคร:{' '}
+                            {(job.applicants ?? 0).toLocaleString('th-TH')} คน
+                          </span>
+                        </div>
+                      </td>
+                      <td className="posting-table-criteria">
+                        <div className="flex flex-col gap-2">
+                          {criteria.length ? (
+                            <ul className="m-0 flex list-none flex-col gap-2 p-0">
+                              {criteria.map((criterion, criterionIndex) => (
+                                <li key={`${criterion}-${criterionIndex}`}>{criterion}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            '-'
+                          )}
+                        </div>
                       </td>
                       <td>{badge(job)}</td>
-                      <td>
-                        {job.viewerCount == null
-                          ? '0 คน'
-                          : `${job.viewerCount.toLocaleString('th-TH')} คน`}
-                      </td>
-                      <td>{(job.applicants || 0).toLocaleString('th-TH')} คน</td>
                       <td>
                         <div
                           style={{

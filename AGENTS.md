@@ -400,3 +400,17 @@ All create/edit forms disable their create/save action until required fields pas
 Brief Detail announcement table typography follows the Buddy Review hierarchy: primary row information uses 16px/24px; status badges/filter labels, table headings, subtitles, Job IDs and row actions use 14px/20px. Preserve these sizes on narrow viewports and scroll the table inside its bounded surface.
 
 Job Posting Detail typography follows the announcement design system: title 24px/32px (20px/28px on mobile), section headings 18px/28px semibold, field labels 16px/24px medium, values/subtitle/counts 16px/24px, and status badges/Brief–Job IDs 14px/20px. Use the shared posting summary/information styles consistently across saved announcements.
+
+Brief Detail announcement rows show Platform with shared social logos, Follower Range (followers) and Special Criteria from saved posting data, using the same legacy criteria fallback as Detail. Place เปิดดูประกาศ and ผู้สมัคร counts below Job ID inside the announcement cell, replacing their separate columns. Missing criteria/ranges/platforms show a hyphen; preserve zero counts and bounded horizontal table scrolling.
+
+Brief Detail announcement table places Follower Range beneath the platform list within the Platform cell, with a small field label. Remove the separate Follower Range column.
+
+Brief Detail announcement table shows each Special Criteria entry on its own line, with 8px gaps. Separate legacy middle-dot/newline entries for display only; preserve saved values and show a hyphen when empty.
+
+Brief Detail announcement Follower Range uses compact English count notation (K/M, for example 10K, 100K, 10M), with up to one decimal place. Keep numeric saved bounds unchanged, zero visible and missing bounds as hyphens.
+
+Brief Detail announcement table combines Platform and Special Criteria into a single คุณสมบัตินักรีวิว column. Stack platform logos/names, compact Follower Range, then individually stacked Special Criteria with a field label; remove the separate Special Criteria column.
+
+Brief Detail announcement Platform appears immediately after the posting title in the same row as 16px logos only, with accessible platform names/tooltips. Remove platforms from คุณสมบัตินักรีวิว; that column retains compact Follower Range and line-separated Special Criteria.
+
+Brief Detail announcement table removes Follower Range display and names the criteria column Special Criteria. Show only line-separated Special Criteria entries in that cell without repeating its label; retain saved follower bounds and other screens.

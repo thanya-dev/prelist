@@ -1,6 +1,7 @@
 import { NotePencil, Users, Eye, Copy, Check } from '@phosphor-icons/react';
 import { AnnouncementStatus } from './AnnouncementStatus.jsx';
 import { useCopy } from '../../hooks/useCopy.js';
+import { PlatformLogo } from '../../components/shared/PlatformLogo.jsx';
 
 export function JobPostingSummary({ job, onEdit }) {
   const { copiedId, copy } = useCopy();
@@ -19,12 +20,29 @@ export function JobPostingSummary({ job, onEdit }) {
       )}
       <div className="project-info">
         <div className="project-title-row">
-          <h1
-            className="posting-summary-title"
-            style={{ color: 'var(--color-primary)', fontWeight: 'bold' }}
-          >
-            {job.name?.trim() || '-'}
-          </h1>
+          <div className="flex min-w-0 items-center gap-2">
+            <h1
+              className="posting-summary-title"
+              style={{ color: 'var(--color-primary)', fontWeight: 'bold' }}
+            >
+              {job.name?.trim() || '-'}
+            </h1>
+            {job.platforms?.length ? (
+              <div className="flex shrink-0 items-center gap-2" aria-label="Platform">
+                {job.platforms.map((platform) => (
+                  <span
+                    key={platform}
+                    className="inline-flex items-center justify-center leading-none"
+                    role="img"
+                    aria-label={platform}
+                    title={platform}
+                  >
+                    <PlatformLogo platform={platform} size={16} />
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </div>
           <AnnouncementStatus
             value={
               job.status === 'Draft' || job.status === 'แบบร่าง'

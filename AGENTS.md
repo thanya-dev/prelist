@@ -414,3 +414,7 @@ Brief Detail announcement table combines Platform and Special Criteria into a si
 Brief Detail announcement Platform appears immediately after the posting title in the same row as 16px logos only, with accessible platform names/tooltips. Remove platforms from คุณสมบัตินักรีวิว; that column retains compact Follower Range and line-separated Special Criteria.
 
 Brief Detail announcement table removes Follower Range display and names the criteria column Special Criteria. Show only line-separated Special Criteria entries in that cell without repeating its label; retain saved follower bounds and other screens.
+
+Job Posting Detail summary shows saved social platform logos immediately after the title in the same row, using shared PlatformLogo at 16px with accessible names/tooltips. Keep status after the title/logo group and allow long titles to wrap responsively.
+
+Social platform icons beside announcement titles use inline-flex wrappers with centered alignment and no text line-height gap, so the 16px logos align vertically with the title text.

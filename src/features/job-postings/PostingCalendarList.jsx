@@ -231,6 +231,7 @@ export function PostingCalendarList({ briefId, tableOnly = false, onCreate }) {
                               {job.platforms.map((platform) => (
                                 <span
                                   key={platform}
+                                  className="inline-flex items-center justify-center leading-none"
                                   role="img"
                                   aria-label={platform}
                                   title={platform}

@@ -17,10 +17,8 @@ const formatRange = (min, max, unit) =>
 function InformationField({ label, children }) {
   return (
     <div className="posting-information-field min-w-0 flex flex-col gap-2">
-      <dt className="text-base font-semibold text-[#64748b]">{label}</dt>
-      <dd className="m-0 flex-1 whitespace-pre-wrap break-words text-base leading-relaxed">
-        {children}
-      </dd>
+      <dt className="text-base leading-6 font-medium text-[#64748b]">{label}</dt>
+      <dd className="m-0 flex-1 whitespace-pre-wrap break-words text-base leading-6">{children}</dd>
     </div>
   );
 }
@@ -100,7 +98,7 @@ export function JobPostingInformation({ job }) {
                 <p className="m-0 mb-3 text-sm font-semibold text-[#64748b]">
                   ตัวอย่างการจัดรูปแบบรายละเอียดงาน
                 </p>
-                <div className="announcement-rich-text text-base leading-relaxed">
+                <div className="announcement-rich-text text-base leading-6">
                   <p>
                     <strong>รับนักรีวิว 5 คน</strong> ทำวิดีโอแนวตั้ง 45–60 วินาที คนละ 1 คลิป ลง
                     TikTok หรือ Instagram Reels เล่าแนวทางวางแผนค่าใช้จ่ายและแนะนำ KTC Cash Card

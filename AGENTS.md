@@ -398,3 +398,5 @@ All social media platform icons across the website use the supplied files in `pu
 All create/edit forms disable their create/save action until required fields pass the same validation used on submit, including trimmed text, ranges and Brief ID format/uniqueness. Announcement Draft requires only a title; Active/Inactive requires all mandatory fields. This supersedes opening announcement confirmation with incomplete required fields.
 
 Brief Detail announcement table typography follows the Buddy Review hierarchy: primary row information uses 16px/24px; status badges/filter labels, table headings, subtitles, Job IDs and row actions use 14px/20px. Preserve these sizes on narrow viewports and scroll the table inside its bounded surface.
+
+Job Posting Detail typography follows the announcement design system: title 24px/32px (20px/28px on mobile), section headings 18px/28px semibold, field labels 16px/24px medium, values/subtitle/counts 16px/24px, and status badges/Brief–Job IDs 14px/20px. Use the shared posting summary/information styles consistently across saved announcements.

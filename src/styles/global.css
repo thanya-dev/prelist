@@ -3836,8 +3836,7 @@
     @apply pb-10;
   }
   .job-posting-detail .breadcrumbs {
-    @apply flex-wrap;
-    font-size: 13px;
+    @apply flex-wrap text-sm leading-5;
   }
   .posting-summary {
     cursor: default;
@@ -3859,23 +3858,24 @@
   }
   .posting-summary-title {
     @apply m-0;
-    font-size: 24px;
-    line-height: 1.4;
-    font-weight: 600;
+    @apply text-2xl leading-8 font-semibold;
     overflow-wrap: anywhere;
   }
   .posting-summary .project-info {
     @apply flex flex-col gap-3;
   }
   .posting-summary .owner {
-    @apply m-0;
+    @apply m-0 text-base leading-6;
     color: #59677e;
-    line-height: 1.7;
+  }
+  .posting-summary .posting-badge,
+  .posting-summary .id-pill {
+    @apply text-sm leading-5;
   }
   .posting-summary .project-info > small {
     @apply block m-0;
     color: var(--muted);
-    font-size: 13px;
+    @apply text-base leading-6;
   }
   .job-posting-detail .detail-tabs {
     /* removed ugly white background */
@@ -3904,20 +3904,17 @@
     color: var(--primary);
   }
   .posting-information-heading h2 {
-    @apply m-0;
-    font-size: 18px;
-    font-weight: 600;
+    @apply m-0 text-lg leading-7 font-semibold;
   }
   .posting-information-section dl {
     @apply m-0;
   }
   .posting-information-field dt {
     color: #748197;
-    font-weight: 500;
-    font-size: 13px;
+    @apply text-base leading-6 font-medium;
   }
   .posting-information-field dd {
-    font-size: 14px;
+    @apply text-base leading-6;
     color: var(--ink);
   }
   .job-posting-form .form-head {
@@ -4053,7 +4050,7 @@
       @apply p-3!;
     }
     .posting-summary-title {
-      font-size: 20px;
+      @apply text-xl leading-7;
     }
     .posting-summary .project-info {
       @apply pt-0;

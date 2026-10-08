@@ -1,3 +1,4 @@
+import { preloadRoute } from '../../app/routePages.js';
 import { useNavigate } from 'react-router-dom';
 import { Folder, Megaphone, UserFocus, Compass } from '@phosphor-icons/react';
 import { getCurrentUser } from '../../lib/currentUser.js';
@@ -13,6 +14,8 @@ export function Sidebar() {
         <div className="nav-label">Business Website</div>
         <button
           className={path === '/' || path.startsWith('/projects') ? 'active' : ''}
+          onMouseEnter={() => preloadRoute('projects')}
+          onFocus={() => preloadRoute('projects')}
           onClick={() => navigate('/')}
         >
           <Folder
@@ -29,6 +32,8 @@ export function Sidebar() {
           </button>
           <button
             className={path.startsWith('/briefs') ? 'active' : ''}
+            onMouseEnter={() => preloadRoute('briefs')}
+            onFocus={() => preloadRoute('briefs')}
             onClick={() => navigate('/briefs')}
           >
             <Megaphone size={19} weight={path.startsWith('/briefs') ? 'fill' : 'regular'} />{' '}

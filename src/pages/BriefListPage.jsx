@@ -1,3 +1,4 @@
+import { preloadRoute } from '../app/routePages.js';
 import { JobPostingFormModal } from '../features/job-postings/JobPostingFormModal.jsx';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -108,6 +109,8 @@ export function BriefListPage() {
                 <article
                   key={brief.id}
                   className="project-card brief-card gap-6 pt-5 pr-8 pb-5 pl-5 max-[760px]:gap-4 max-[760px]:p-3 cursor-pointer hover:bg-slate-50 transition-colors"
+                  onMouseEnter={() => preloadRoute('briefDetail')}
+                  onFocus={() => preloadRoute('briefDetail')}
                   onClick={() => navigate(`/briefs/${brief.id}`)}
                 >
                   <BriefSummary brief={brief} onOpen={() => navigate(`/briefs/${brief.id}`)}>

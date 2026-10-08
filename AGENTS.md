@@ -426,3 +426,5 @@ Reusable presentational components belong in `src/components/ui` or `src/compone
 Extract duplicated general-purpose function logic into `src/utils` and reuse it through imports. Preserve each caller's defaults and behavior; keep domain-specific validation, status rules and data access in their feature.
 
 Job Posting reviewer lists show matching table/card skeletons during pagination and after confirmed individual or bulk Accept/Reject decisions. Preserve reviewer filters, selection and saved decisions; disable bulk actions during loading and keep the current page within the available result range.
+
+Prioritize fast initial loading and responsive interactions. Avoid artificial page-loading delays for locally available data; preserve the explicitly required reviewer pagination/decision skeletons. Preload split routes on user intent rather than eagerly loading all pages.

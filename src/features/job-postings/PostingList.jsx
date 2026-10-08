@@ -1,3 +1,4 @@
+import { preloadRoute } from '../../app/routePages.js';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, MagnifyingGlass, Plus, Users, CopySimple, Check } from '@phosphor-icons/react';
@@ -163,6 +164,8 @@ export function PostingList({ briefId, onCreate }) {
                       <td>
                         <div className="flex items-center gap-2">
                           <button
+                            onMouseEnter={() => preloadRoute('jobPosting')}
+                            onFocus={() => preloadRoute('jobPosting')}
                             onClick={() => openJob(job)}
                             style={{
                               textAlign: 'left',

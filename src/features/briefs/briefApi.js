@@ -53,6 +53,7 @@ function getSavedBriefs() {
 
 export function getBriefs() {
   const savedBriefs = getSavedBriefs();
+  let linkedPostings;
   return [
     ...SEED_BRIEFS_ALL,
     ...savedBriefs.filter((brief) => !SEED_BRIEFS_ALL.some((seed) => seed.id === brief.id)),
@@ -65,25 +66,27 @@ export function getBriefs() {
         title: overrides?.name || brief.title || brief.name,
       };
       if (!Array.isArray(mergedBrief.products)) {
-        let savedPostings = [];
-        try {
-          savedPostings = JSON.parse(localStorage.getItem('buddy-job-postings')) || [];
-        } catch {
-          /* Keep seed fallback. */
+        if (!linkedPostings) {
+          let savedPostings = [];
+          try {
+            savedPostings = JSON.parse(localStorage.getItem('buddy-job-postings')) || [];
+          } catch {
+            /* Keep seed fallback. */
+          }
+          linkedPostings = [
+            ...SEED_JOB_POSTINGS.map((posting) => ({
+              ...posting,
+              ...savedPostings.find((saved) => saved.id === posting.id),
+            })),
+            ...savedPostings.filter(
+              (posting) => !SEED_JOB_POSTINGS.some((seed) => seed.id === posting.id),
+            ),
+          ];
         }
-        const postings = [
-          ...SEED_JOB_POSTINGS.map((posting) => ({
-            ...posting,
-            ...savedPostings.find((saved) => saved.id === posting.id),
-          })),
-          ...savedPostings.filter(
-            (posting) => !SEED_JOB_POSTINGS.some((seed) => seed.id === posting.id),
-          ),
-        ];
         const linkedIds = [brief.id, mergedBrief.id, ...(mergedBrief.briefNumbers || [])];
         mergedBrief.products = [
           ...new Set(
-            postings
+            linkedPostings
               .filter((posting) => linkedIds.includes(posting.brief))
               .flatMap((posting) => posting.products || [])
               .filter((product) => typeof product === 'string' && product.trim()),
@@ -97,8 +100,7 @@ export function getBriefs() {
   });
 }
 
-export function getBriefById(briefId) {
-  const briefs = getBriefs();
+export function getBriefById(briefId, briefs = getBriefs()) {
   let currentId = briefId;
   const visitedIds = new Set();
   while (currentId && !visitedIds.has(currentId)) {

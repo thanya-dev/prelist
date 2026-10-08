@@ -1,3 +1,4 @@
+import { readStoredJson } from '../../utils/storage.js';
 import { PRELIST_REVIEWERS } from '../projects/prelistSeeds.js';
 import { SEED_JOB_POSTINGS } from '../job-postings/jobPostingSeeds.js';
 
@@ -34,11 +35,7 @@ export function getAnnouncementReviewers(posting) {
     }));
 }
 export function getCampaignAnnouncementReviewers(campaignId) {
-  try {
-    return JSON.parse(localStorage.getItem(`buddy-campaign-influencers-${campaignId}`)) || [];
-  } catch {
-    return [];
-  }
+  return readStoredJson(`buddy-campaign-influencers-${campaignId}`, []);
 }
 export function importAnnouncementReviewers(campaignId, reviewers) {
   const existing = getCampaignAnnouncementReviewers(campaignId);

@@ -1,3 +1,5 @@
+import { toggleArrayValue } from '../../utils/array.js';
+import { downloadCsv } from '../../utils/csv.js';
 import { PlatformLogo } from '../../components/shared/PlatformLogo.jsx';
 import { JobPostingFormModal } from './JobPostingFormModal.jsx';
 import { useReviewerDecisions } from './useReviewerDecisions.js';
@@ -95,11 +97,7 @@ export function JobPostingDetail() {
   const [bulkNotice, setBulkNotice] = useState('');
   const toggleReviewer = (reviewerId) => {
     if (!reviewers.some((item) => item.id === reviewerId && canSelect(item))) return;
-    setSelectedReviewerIds((current) =>
-      current.includes(reviewerId)
-        ? current.filter((value) => value !== reviewerId)
-        : [...current, reviewerId],
-    );
+    setSelectedReviewerIds((current) => toggleArrayValue(current, reviewerId));
   };
   const exportSelectedCsv = () => {
     const selectedItems = reviewers.filter((item) => eligibleSelectedIds.includes(item.id));
@@ -113,14 +111,7 @@ export function JobPostingDetail() {
       item.estReach,
     ]);
 
-    const escapeCell = (value) => `"${String(value ?? '').replaceAll('"', '""')}"`;
-    const csv = `\uFEFF${[headers, ...rows].map((row) => row.map(escapeCell).join(',')).join('\r\n')}`;
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `reviewers-${job.id}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+    downloadCsv(`reviewers-${job.id}.csv`, headers, rows);
     setSelectedReviewerIds([]);
     setBulkNotice(`Export ${selectedItems.length} คนเป็น CSV เรียบร้อย`);
   };

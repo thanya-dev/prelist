@@ -1,3 +1,4 @@
+import { toggleArrayValue } from '../../utils/array.js';
 import { useState } from 'react';
 import { getJobPostings } from '../job-postings/jobPostingApi.js';
 import { getBriefById } from '../briefs/briefApi.js';
@@ -79,11 +80,7 @@ export function AnnouncementReviewerImport({ campaign, project, onImport }) {
                   type="checkbox"
                   checked={selectedIds.includes(reviewer.id)}
                   onChange={() =>
-                    setSelectedIds((current) =>
-                      current.includes(reviewer.id)
-                        ? current.filter((id) => id !== reviewer.id)
-                        : [...current, reviewer.id],
-                    )
+                    setSelectedIds((current) => toggleArrayValue(current, reviewer.id))
                   }
                 />
                 {reviewer.name} · {reviewer.platform}

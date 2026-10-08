@@ -1,3 +1,5 @@
+import { readStoredJson } from '../../utils/storage.js';
+import { toggleArrayValue } from '../../utils/array.js';
 import { PlatformLogo } from '../../components/shared/PlatformLogo.jsx';
 import { useState } from 'react';
 import {
@@ -41,10 +43,7 @@ export function InfluencerList() {
       setImportError('ไม่พบ Brief ID นี้ในระบบ');
       return;
     }
-    let decisions = {};
-    try {
-      decisions = JSON.parse(localStorage.getItem('buddy-reviewer-decisions')) || {};
-    } catch {}
+    const decisions = readStoredJson('buddy-reviewer-decisions', {});
     const candidates = PRELIST_REVIEWERS.filter(
       (item, index) => index % 2 === 0 && decisions[`${job.id}:${item.id}`]?.status !== 'Reject',
     ).map((item) => ({
@@ -78,13 +77,9 @@ export function InfluencerList() {
     );
   };
   const [importError, setImportError] = useState('');
-  const [importedAccounts, setImportedAccounts] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('campaign-imported-influencers')) || [];
-    } catch {
-      return [];
-    }
-  });
+  const [importedAccounts, setImportedAccounts] = useState(() =>
+    readStoredJson('campaign-imported-influencers', []),
+  );
   const seedAccounts = [
     {
       name: 'AOMMTH',
@@ -383,13 +378,7 @@ export function InfluencerList() {
                     type="checkbox"
                     className="accent-[#6545ff] w-4 h-4 cursor-pointer"
                     checked={!hiddenColumns.includes(name)}
-                    onChange={() =>
-                      setHiddenColumns((current) =>
-                        current.includes(name)
-                          ? current.filter((v) => v !== name)
-                          : [...current, name],
-                      )
-                    }
+                    onChange={() => setHiddenColumns((current) => toggleArrayValue(current, name))}
                   />
                   {name}
                 </label>
@@ -408,13 +397,7 @@ export function InfluencerList() {
                   type="checkbox"
                   className="accent-[#6545ff] w-[18px] h-[18px] cursor-pointer"
                   checked={platforms.includes(name)}
-                  onChange={() =>
-                    setPlatforms((current) =>
-                      current.includes(name)
-                        ? current.filter((v) => v !== name)
-                        : [...current, name],
-                    )
-                  }
+                  onChange={() => setPlatforms((current) => toggleArrayValue(current, name))}
                 />
                 <PlatformLogo platform={name} size={20} />
                 {name}
@@ -645,11 +628,7 @@ export function InfluencerList() {
                               type="checkbox"
                               checked={briefSelection.includes(key)}
                               onChange={() =>
-                                setBriefSelection((current) =>
-                                  current.includes(key)
-                                    ? current.filter((value) => value !== key)
-                                    : [...current, key],
-                                )
+                                setBriefSelection((current) => toggleArrayValue(current, key))
                               }
                             />
                             {item.name} · {item.platform}

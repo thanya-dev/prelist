@@ -1,12 +1,7 @@
+import { readStoredJson } from '../../utils/storage.js';
 import { useState } from 'react';
 export function useReviewerDecisions(jobId) {
-  const [decisions, setDecisions] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('buddy-reviewer-decisions')) || {};
-    } catch {
-      return {};
-    }
-  });
+  const [decisions, setDecisions] = useState(() => readStoredJson('buddy-reviewer-decisions', {}));
   const decide = (reviewerId, status) => {
     const currentStatus = decisions[`${jobId}:${reviewerId}`]?.status;
     let nextStatus = status;

@@ -422,3 +422,5 @@ Social platform icons beside announcement titles use inline-flex wrappers with c
 Job Posting Detail พรีวิวประกาศ action uses the Eye icon.
 
 Reusable presentational components belong in `src/components/ui` or `src/components/shared`. Keep feature-specific state, persistence, validation and domain option constants in `src/features`; reuse shared components through props while preserving existing UI and behavior.
+
+Extract duplicated general-purpose function logic into `src/utils` and reuse it through imports. Preserve each caller's defaults and behavior; keep domain-specific validation, status rules and data access in their feature.

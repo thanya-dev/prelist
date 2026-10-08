@@ -1,38 +1,21 @@
-import { DAY_MS, parseDay, getBangkokToday } from '../../utils/formatDate.js';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  ArrowLeft,
-  CalendarBlank,
-  CaretRight,
-  Eye,
-  List,
-  MagnifyingGlass,
-  NotePencil,
-  Plus,
-  Users,
-  CopySimple,
-  Check,
-} from '@phosphor-icons/react';
+import { Eye, MagnifyingGlass, Plus, Users, CopySimple, Check } from '@phosphor-icons/react';
 import { useCopy } from '../../hooks/useCopy.js';
 import { SEED_JOB_POSTINGS } from './jobPostingSeeds.js';
 import { getJobPostings } from './jobPostingApi.js';
 import { getRecruitmentPeriod } from './recruitmentStatuses.js';
 import { getAnnouncementCriteria } from './announcementForm.js';
-import { PlatformLogo } from '../../components/shared/PlatformLogo.jsx';
+import { PlatformIcons } from '../../components/shared/PlatformIcons.jsx';
 
 const POSTINGS_PAGE_SIZE = 10;
 
-export function PostingCalendarList({ briefId, tableOnly = false, onCreate }) {
+export function PostingList({ briefId, onCreate }) {
   const navigate = useNavigate();
   const { copiedId, copy } = useCopy();
-  const [view, setView] = useState(tableOnly ? 'table' : 'calendar');
   const [query, setQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [status, setStatus] = useState('ทั้งหมด');
-  const todayString = getBangkokToday();
-  const today = parseDay(todayString);
-  const [month, setMonth] = useState(() => new Date(today * DAY_MS));
   const statuses = ['ทั้งหมด', 'ร่าง', 'เปิดรับสมัคร', 'ปิดรับสมัคร'];
   const jobs = getJobPostings()
     .filter((job) => !briefId || job.brief === briefId)
@@ -41,7 +24,7 @@ export function PostingCalendarList({ briefId, tableOnly = false, onCreate }) {
         ...SEED_JOB_POSTINGS.find((seed) => seed.id === saved.id),
         ...saved,
       };
-      const { start, end, validPeriod, state } = getRecruitmentPeriod(job, today);
+      const { start, end, validPeriod, state } = getRecruitmentPeriod(job);
       return {
         ...job,
         campaign: job.campaignName || job.brand || 'ยังไม่ระบุแคมเปญ',
@@ -65,21 +48,6 @@ export function PostingCalendarList({ briefId, tableOnly = false, onCreate }) {
   const activePage = Math.min(currentPage, Math.max(1, totalPages));
   const pageOffset = (activePage - 1) * POSTINGS_PAGE_SIZE;
   const paginatedJobs = filtered.slice(pageOffset, pageOffset + POSTINGS_PAGE_SIZE);
-  const drafts = filtered.filter((job) => !job.validPeriod);
-  const dated = filtered.filter((job) => job.validPeriod);
-  const first = Date.UTC(month.getUTCFullYear(), month.getUTCMonth(), 1) / DAY_MS;
-  const last = Date.UTC(month.getUTCFullYear(), month.getUTCMonth() + 1, 0) / DAY_MS;
-  const gridStart = first - ((new Date(first * DAY_MS).getUTCDay() + 6) % 7);
-  const weekCount = Math.ceil((last - gridStart + 1) / 7);
-  const formatDay = (day) =>
-    new Intl.DateTimeFormat('th-TH', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      timeZone: 'UTC',
-    }).format(new Date(day * DAY_MS));
-  const period = (job) =>
-    job.validPeriod ? `${formatDay(job.start)} – ${formatDay(job.end)}` : 'ยังไม่กำหนดช่วงรับสมัคร';
   const tone = (job) =>
     ({
       ร่าง: 'draft',
@@ -93,8 +61,6 @@ export function PostingCalendarList({ briefId, tableOnly = false, onCreate }) {
     setCurrentPage(1);
     setStatus('ทั้งหมด');
   };
-  const changeMonth = (offset) =>
-    setMonth(new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth() + offset, 1)));
   return (
     <section className="brief-posting-calendar">
       <div className="posting-page-heading">
@@ -145,24 +111,6 @@ export function PostingCalendarList({ briefId, tableOnly = false, onCreate }) {
           ))}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-          {!tableOnly && (
-            <div className="posting-view-toggle">
-              {[
-                ['calendar', 'ปฏิทิน', CalendarBlank],
-                ['table', 'ตาราง', List],
-              ].map(([value, label, Icon]) => (
-                <button
-                  key={value}
-                  aria-pressed={view === value}
-                  className={view === value ? 'active' : ''}
-                  onClick={() => setView(value)}
-                >
-                  <Icon />
-                  {label}
-                </button>
-              ))}
-            </div>
-          )}
           <label className="search" style={{ margin: 0 }}>
             <MagnifyingGlass />
             <input
@@ -186,7 +134,7 @@ export function PostingCalendarList({ briefId, tableOnly = false, onCreate }) {
             ล้างตัวกรอง
           </button>
         </div>
-      ) : view === 'table' ? (
+      ) : (
         <>
           <div className="posting-table-wrap mt-6">
             <table className="posting-table">
@@ -226,21 +174,7 @@ export function PostingCalendarList({ briefId, tableOnly = false, onCreate }) {
                           >
                             {job.name}
                           </button>
-                          {job.platforms?.length ? (
-                            <div className="flex shrink-0 items-center gap-2" aria-label="Platform">
-                              {job.platforms.map((platform) => (
-                                <span
-                                  key={platform}
-                                  className="inline-flex items-center justify-center leading-none"
-                                  role="img"
-                                  aria-label={platform}
-                                  title={platform}
-                                >
-                                  <PlatformLogo platform={platform} size={16} />
-                                </span>
-                              ))}
-                            </div>
-                          ) : null}
+                          <PlatformIcons platforms={job.platforms} />
                         </div>
                         <small style={{ display: 'block', color: '#64748b', marginBottom: '8px' }}>
                           {job.subtitle || job.brand}
@@ -375,151 +309,6 @@ export function PostingCalendarList({ briefId, tableOnly = false, onCreate }) {
               </nav>
             )}
           </div>
-        </>
-      ) : (
-        <>
-          {drafts.length > 0 && (
-            <button
-              className="posting-drafts"
-              onClick={() => {
-                setView('table');
-                setStatus('ทั้งหมด');
-              }}
-            >
-              <NotePencil /> ประกาศไม่ระบุวัน {drafts.length} รายการ <CaretRight />
-            </button>
-          )}
-          <div className="posting-month-header">
-            <h2>
-              {new Intl.DateTimeFormat('th-TH', {
-                month: 'long',
-                year: 'numeric',
-                timeZone: 'UTC',
-              }).format(month)}
-            </h2>
-            <div>
-              <button
-                className="secondary-button"
-                onClick={() => setMonth(new Date(today * DAY_MS))}
-              >
-                วันนี้
-              </button>
-              <button
-                className="secondary-button"
-                aria-label="เดือนก่อนหน้า"
-                onClick={() => changeMonth(-1)}
-              >
-                <ArrowLeft />
-              </button>
-              <button
-                className="secondary-button"
-                aria-label="เดือนถัดไป"
-                onClick={() => changeMonth(1)}
-              >
-                <CaretRight />
-              </button>
-            </div>
-          </div>
-          <div className="posting-calendar-scroll">
-            <div className="posting-calendar">
-              <div className="posting-weekdays">
-                {['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'].map((day) => (
-                  <span key={day}>{day}</span>
-                ))}
-              </div>
-              {Array.from(
-                {
-                  length: weekCount,
-                },
-                (_, week) => {
-                  const weekStart = gridStart + week * 7;
-                  const segments = dated
-                    .filter((job) => job.start <= weekStart + 6 && job.end >= weekStart)
-                    .map((job) => ({
-                      job,
-                      left: Math.max(job.start, weekStart) - weekStart,
-                      right: Math.min(job.end, weekStart + 6) - weekStart,
-                    }))
-                    .sort(
-                      (a, b) =>
-                        a.left - b.left || b.right - a.right || a.job.id.localeCompare(b.job.id),
-                    );
-                  const lanes = [];
-                  for (const segment of segments) {
-                    let lane = lanes.findIndex((end) => end < segment.left);
-                    if (lane < 0) lane = lanes.length;
-                    lanes[lane] = segment.right;
-                    segment.lane = lane;
-                  }
-                  return (
-                    <div className="posting-week" key={weekStart}>
-                      <div className="posting-week-days">
-                        {Array.from(
-                          {
-                            length: 7,
-                          },
-                          (_, column) => {
-                            const day = weekStart + column;
-                            return (
-                              <div
-                                className={`${day < first || day > last ? 'outside' : ''} ${day === today ? 'today' : ''}`}
-                                key={day}
-                              >
-                                <span aria-label={formatDay(day)}>
-                                  {new Date(day * DAY_MS).getUTCDate()}
-                                </span>
-                              </div>
-                            );
-                          },
-                        )}
-                      </div>
-                      <div
-                        className="posting-week-events"
-                        style={{
-                          gridTemplateRows: `repeat(${Math.max(lanes.length, 1)}, 148px)`,
-                        }}
-                      >
-                        {segments.map(({ job, left, right, lane }) => (
-                          <button
-                            key={job.id}
-                            className={`posting-event ${tone(job)} ${job.start < weekStart ? 'continues-left' : ''} ${job.end > weekStart + 6 ? 'continues-right' : ''}`}
-                            style={{
-                              gridColumn: `${left + 1} / ${right + 2}`,
-                              gridRow: lane + 1,
-                            }}
-                            onClick={() => openJob(job)}
-                            title={`${job.name} · ${job.campaign} · ${period(job)} · ${job.state} · เปิดดูประกาศ ${job.viewerCount == null ? '0 คน' : `${job.viewerCount} คน`} · ผู้สมัคร ${job.applicants || 0} คน`}
-                          >
-                            <strong style={{ color: 'var(--color-primary)' }}>{job.name}</strong>
-                            <small>{job.campaign}</small>
-                            <small>{period(job)}</small>
-                            <div className="posting-event-footer">
-                              {badge(job)}
-                              <span className="posting-event-counts">
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                  <Eye size={14} /> เปิดดูประกาศ{' '}
-                                  {job.viewerCount == null
-                                    ? '0 คน'
-                                    : `${job.viewerCount.toLocaleString('th-TH')} คน`}
-                                </span>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                  <Users size={14} /> สมัคร{' '}
-                                  {(job.applicants || 0).toLocaleString('th-TH')} คน
-                                </span>
-                              </span>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                },
-              )}
-            </div>
-          </div>
-          {!dated.some(
-            (job) => job.start <= gridStart + weekCount * 7 - 1 && job.end >= gridStart,
-          ) && <p className="posting-month-empty">ไม่มีประกาศในเดือนนี้</p>}
         </>
       )}
     </section>

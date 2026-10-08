@@ -5,7 +5,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CaretRight, ListMagnifyingGlass, MagnifyingGlass, Plus } from '@phosphor-icons/react';
 import { BriefFormModal } from '../features/briefs/BriefFormModal.jsx';
 import { getBriefs } from '../features/briefs/briefApi.js';
-import { BriefSummary } from '../features/briefs/BriefSummary.jsx';
+import { BriefSummary } from '../components/shared/BriefSummary.jsx';
 import { Sidebar } from '../components/layout/Sidebar.jsx';
 import { getJobPostings } from '../features/job-postings/jobPostingApi.js';
 import {

@@ -5,9 +5,9 @@ import { Skeleton } from '../components/ui/Skeleton.jsx';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { ArrowLeft, CaretRight } from '@phosphor-icons/react';
 import { getBriefById } from '../features/briefs/briefApi.js';
-import { BriefSummary } from '../features/briefs/BriefSummary.jsx';
+import { BriefSummary } from '../components/shared/BriefSummary.jsx';
 import { Sidebar } from '../components/layout/Sidebar.jsx';
-import { PostingCalendarList } from '../features/job-postings/PostingCalendarList.jsx';
+import { PostingList } from '../features/job-postings/PostingList.jsx';
 export function BriefDetailPage({ onBack }) {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -109,9 +109,8 @@ export function BriefDetailPage({ onBack }) {
             </section>
 
             <div>
-              <PostingCalendarList
+              <PostingList
                 briefId={brief?.id || id}
-                tableOnly
                 onCreate={() => setIsCreatePostingOpen(true)}
               />
             </div>

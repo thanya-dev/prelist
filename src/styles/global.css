@@ -3087,28 +3087,6 @@
     width: 380px;
     max-width: 100%;
   }
-  .posting-view-toggle {
-    display: flex;
-    background: #edf0f5;
-    @apply p-1;
-    border-radius: 8px;
-  }
-  .posting-view-toggle button {
-    display: flex;
-    align-items: center;
-    @apply gap-2;
-    @apply pt-[9px] pr-[18px] pb-[9px] pl-[18px];
-    border-radius: 6px;
-    color: #64748b;
-  }
-  .posting-view-toggle button.active {
-    background: white;
-    color: #3b28cc;
-    box-shadow: 0 1px 4px #0001;
-  }
-  .posting-view-toggle svg {
-    width: 19px;
-  }
   .posting-status-filters {
     display: flex;
     flex-wrap: wrap;
@@ -3126,169 +3104,6 @@
     background: #eeeaff;
     color: #3b28cc;
     border-color: #cbc1ff;
-  }
-  .posting-month-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    @apply mt-[22px] mr-0 mb-4 ml-0;
-  }
-  .posting-month-header h2 {
-    font-size: 20px;
-    @apply m-0;
-  }
-  .posting-month-header > div {
-    display: flex;
-    @apply gap-2;
-  }
-  .posting-calendar {
-    background: white;
-    border: 1px solid #dfe5ed;
-    border-radius: 12px;
-    overflow: hidden;
-    min-width: 980px;
-  }
-  .posting-calendar-scroll {
-    overflow-x: auto;
-  }
-  .posting-weekdays,
-  .posting-week-days,
-  .posting-week-events {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-  }
-  .posting-weekdays {
-    background: #f8fafc;
-    border-bottom: 1px solid #dfe5ed;
-  }
-  .posting-weekdays span {
-    text-align: center;
-    @apply pt-[13px] pr-0 pb-[13px] pl-0;
-    color: #64748b;
-    font-size: 13px;
-    font-weight: 600;
-  }
-  .posting-week {
-    position: relative;
-    border-bottom: 1px solid #dfe5ed;
-    min-height: 155px;
-  }
-  .posting-week:last-child {
-    border-bottom: 0;
-  }
-  .posting-week-days {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-  .posting-week-days > div {
-    border-right: 1px solid #edf0f5;
-    @apply p-[9px];
-  }
-  .posting-week-days > div:last-child {
-    border-right: 0;
-  }
-  .posting-week-days .outside {
-    background: #fafbfc;
-    color: #bbc1cc;
-  }
-  .posting-week-days span {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 27px;
-    height: 27px;
-    font-size: 13px;
-  }
-  .posting-week-days .today span {
-    background: #3b28cc;
-    color: white;
-    border-radius: 50%;
-    font-weight: 700;
-  }
-  .posting-week-events {
-    position: relative;
-    @apply pt-[43px] pr-1 pb-2 pl-1;
-    @apply gap-y-1.5 gap-x-1;
-  }
-  .posting-event {
-    container-type: inline-size;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    text-align: left;
-    border: 1px solid #dfe5ed;
-    border-left: 3px solid #8c96a8;
-    border-radius: 7px;
-    @apply pt-2 pr-2.5 pb-2 pl-2.5;
-    min-width: 0;
-    @apply gap-[3px];
-    background: #f3f4f6;
-    overflow: hidden;
-  }
-  .posting-event:hover {
-    box-shadow: 0 2px 8px #0002;
-  }
-  .posting-event strong,
-  .posting-event small {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .posting-event strong {
-    font-size: 13px;
-  }
-  .posting-event small {
-    color: #64748b;
-    font-size: 11px;
-  }
-  .posting-event-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    @apply gap-1;
-    font-size: 10px;
-    @apply mt-auto;
-  }
-  .posting-event > strong,
-  .posting-event > small {
-    flex-shrink: 0;
-    line-height: 1.4;
-  }
-  .posting-event-counts {
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    white-space: nowrap;
-    line-height: 1.4;
-  }
-  @container (max-width: 240px) {
-    .posting-event-footer {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 4px;
-    }
-  }
-  .posting-event.open {
-    background: #eefbf5;
-    border-color: #b6e7cf;
-    border-left-color: #2bae6b;
-  }
-  .posting-event.scheduled {
-    background: #eff3ff;
-    border-color: #c4d2fa;
-    border-left-color: #5c78d9;
-  }
-  .posting-event.closed {
-    background: #f3f4f6;
-  }
-  .posting-event.continues-left {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-  }
-  .posting-event.continues-right {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
   }
   .posting-badge {
     display: inline-flex;
@@ -3317,20 +3132,6 @@
   .posting-badge.all {
     background: #f4e8ff;
     color: #8c42db;
-  }
-  .posting-drafts {
-    display: flex;
-    align-items: center;
-    @apply gap-2;
-    background: #fff8e9;
-    border: 1px solid #f0d9a5;
-    border-radius: 8px;
-    @apply pt-3 pr-4 pb-3 pl-4;
-    width: 100%;
-    color: #9a7426;
-  }
-  .posting-drafts svg:last-child {
-    @apply ml-auto;
   }
   .posting-table-wrap {
     overflow-x: auto;
@@ -3371,11 +3172,6 @@
     @apply mt-[5px];
     color: #8793a5;
   }
-  .posting-month-empty {
-    text-align: center;
-    color: #8793a5;
-    @apply m-[18px];
-  }
   @media (max-width: 760px) {
     .posting-list-main {
       width: calc(100% - 28px);
@@ -3394,9 +3190,6 @@
     }
     .posting-controls .search {
       width: 100%;
-    }
-    .posting-month-header h2 {
-      font-size: 17px;
     }
     .posting-status-filters button {
       font-size: 12px;
@@ -4842,8 +4635,6 @@
   }
 }
 @layer components {
-}
-@layer components {
   .posting-product-options {
     @apply flex flex-col gap-4;
   }
@@ -5038,59 +4829,6 @@
   }
 }
 
-@layer components {
-  .brief-numbers {
-    @apply rounded-xl border border-line bg-white p-5 max-[760px]:p-3;
-  }
-  .brief-numbers h3 {
-    @apply m-0 text-lg font-semibold;
-  }
-  .brief-numbers > p {
-    @apply mt-1 mb-4 text-base text-muted;
-  }
-  .brief-number-entry {
-    @apply py-4 border-b border-line;
-  }
-  .brief-number-row {
-    @apply grid items-center gap-3;
-    grid-template-columns: 20px 24px minmax(0, 1fr) 36px;
-  }
-  .brief-number-row input {
-    @apply w-full min-w-0 text-base font-normal border border-line rounded-lg px-3 py-2 bg-white;
-  }
-  .brief-number-drag {
-    @apply p-0 cursor-grab flex;
-  }
-  .brief-number-delete {
-    @apply flex items-center justify-center h-9 w-9 rounded-lg bg-soft;
-  }
-  .brief-number-checks {
-    @apply flex flex-wrap gap-x-4 gap-y-2 mt-3 ml-17 text-sm text-muted max-[760px]:ml-0;
-  }
-  .brief-number-checks span {
-    @apply flex items-center gap-2;
-  }
-  .brief-number-checks .is-valid {
-    color: #2ca76b;
-  }
-  .brief-number-checks .is-invalid {
-    color: #f05b60;
-  }
-  .brief-number-entry > .field-error {
-    @apply m-0 mt-2;
-  }
-  .brief-number-add {
-    @apply pt-4;
-  }
-  .brief-number-add > svg {
-    @apply text-muted;
-  }
-  .brief-number-add button {
-    @apply flex items-center gap-2 text-[#3286d3] font-semibold;
-    grid-column: 3 / -1;
-  }
-}
-
 /* Brief authoring follows the supplied Project form reference. */
 @layer components {
   .brief-reference-form {
@@ -5108,8 +4846,7 @@
     @apply p-6 rounded-3xl mt-6 gap-6 max-[760px]:p-3 max-[760px]:gap-4;
     background: #f7f9fb;
   }
-  .brief-reference-form .form-card,
-  .brief-reference-form .brief-numbers {
+  .brief-reference-form .form-card {
     @apply rounded-md border-0 p-6 max-[760px]:p-3;
     box-shadow: none;
     background: white;
@@ -5119,8 +4856,7 @@
     font-weight: 500;
   }
   .brief-reference-form .field input,
-  .brief-reference-form .field textarea,
-  .brief-reference-form .brief-number-row input {
+  .brief-reference-form .field textarea {
     border: 1px solid #e2e8f0;
     border-radius: 6px;
     font-size: 1rem;
@@ -5130,16 +4866,11 @@
   .brief-reference-form .field > span {
     color: #374151;
   }
-  .brief-reference-form .brief-numbers h3,
   .brief-reference-form .posting-product-options h2 {
     @apply text-lg font-semibold;
   }
-  .brief-reference-form .brief-numbers > p,
   .brief-reference-form .posting-product-options > p {
     color: #8591a8;
-  }
-  .brief-reference-form .brief-number-delete {
-    background: #edf2f7;
   }
   .brief-reference-form .prelist-sticky {
     @apply justify-center;

@@ -1,4 +1,3 @@
-import { applyCampaignPostingSource } from './campaignPostingSource.js';
 const STORAGE_KEY = 'buddy-review-campaigns-v1';
 export const DEFAULT_CAMPAIGN = {
   id: 'page-promotion-facebook',
@@ -38,7 +37,7 @@ export const DEFAULT_CAMPAIGN = {
   exampleVideos: [],
   reward: '',
 };
-export function getCampaigns() {
+function getCampaigns() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
   } catch {
@@ -47,10 +46,4 @@ export function getCampaigns() {
 }
 export function getCampaignById(id) {
   return getCampaigns()[id] || (id === DEFAULT_CAMPAIGN.id ? DEFAULT_CAMPAIGN : null);
-}
-export function saveCampaign(campaign) {
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify({ ...getCampaigns(), [campaign.id]: applyCampaignPostingSource(campaign) }),
-  );
 }

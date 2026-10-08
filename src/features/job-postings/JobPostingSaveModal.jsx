@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { ArrowSquareOut, X } from '@phosphor-icons/react';
+import { Eye, X } from '@phosphor-icons/react';
 
 export function JobPostingSaveModal({ isEditing, onClose, onConfirm }) {
   const dialogRef = useRef(null);
@@ -67,7 +67,7 @@ export function JobPostingSaveModal({ isEditing, onClose, onConfirm }) {
               )
             }
           >
-            <ArrowSquareOut size={20} /> พรีวิวประกาศ
+            <Eye size={20} /> พรีวิวประกาศ
           </button>
           <small>เปิด Preview ในแท็บใหม่</small>
         </div>

@@ -25,7 +25,7 @@ import {
 } from './campaignPostingSource.js';
 import { LockSimple } from '@phosphor-icons/react';
 import { Field } from '../../components/ui/Field.jsx';
-import { CreatorCriteriaFields } from '../job-postings/CreatorCriteriaFields.jsx';
+import { CreatorCriteriaFields } from '../../components/shared/CreatorCriteriaFields.jsx';
 import { DEFAULT_CAMPAIGN, getCampaignById } from './campaignApi.js';
 import { SEED_PROJECTS } from '../projects/projectSeeds.js';
 import { getCurrentUser } from '../../lib/currentUser.js';
@@ -542,11 +542,6 @@ export function CampaignForm() {
           {step === 1 && !values.sourcePostings?.length && (
             <>
               {renderLockHint('target')}
-              {values.sourcePostings?.length > 0 && (
-                <p className="cw-lock-hint">
-                  ช่องที่ไม่มีข้อมูลในประกาศแสดงเป็นค่าว่าง / ยังไม่ระบุ
-                </p>
-              )}
               <fieldset className="cw-inherited-fields" disabled={isLocked('target')}>
                 <CreatorCriteriaFields
                   showGoals={false}

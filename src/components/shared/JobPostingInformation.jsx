@@ -1,7 +1,7 @@
 import { Users, Gift, Info } from '@phosphor-icons/react';
-import { sanitizeAnnouncementHtml } from './announcementRichText.js';
-import { PlatformLogo } from '../../components/shared/PlatformLogo.jsx';
-import { getAnnouncementCriteria } from './announcementForm.js';
+import { sanitizeAnnouncementHtml } from '../../features/job-postings/announcementRichText.js';
+import { PlatformLogo } from './PlatformLogo.jsx';
+import { getAnnouncementCriteria } from '../../features/job-postings/announcementForm.js';
 
 const isMissing = (value) => value == null || (typeof value === 'string' && !value.trim());
 const displayValue = (value) => (isMissing(value) ? '-' : value);

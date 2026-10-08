@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { X } from '@phosphor-icons/react';
 import { Field } from '../../components/ui/Field.jsx';
-import { getBriefNumberChecks } from './BriefNumbersField.jsx';
+import { getBriefNumberChecks } from './briefNumberValidation.js';
 import { createBrief, getBriefById, updateBrief } from './briefApi.js';
 
 export function BriefFormModal({ brief = null, onClose, onSave }) {

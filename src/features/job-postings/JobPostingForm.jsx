@@ -9,7 +9,8 @@ import { JobPostingSaveModal } from './JobPostingSaveModal.jsx';
 import { getJobPostingById, createJobPosting, updateJobPosting } from './jobPostingApi.js';
 import { getBriefById } from '../briefs/briefApi.js';
 import { getCurrentUser } from '../../lib/currentUser.js';
-import { AnnouncementStatus, ANNOUNCEMENT_STATUS_OPTIONS } from './AnnouncementStatus.jsx';
+import { AnnouncementStatus } from '../../components/shared/AnnouncementStatus.jsx';
+import { ANNOUNCEMENT_STATUS_OPTIONS } from './announcementStatuses.js';
 import {
   ANNOUNCEMENT_PLATFORMS,
   SPECIAL_CRITERIA_OPTIONS,

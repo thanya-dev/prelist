@@ -140,7 +140,7 @@ export function CampaignDetailPage() {
       <main className="pt-6 px-4 sm:px-6 lg:px-12 pb-20">
         <CampaignSourceDetails campaign={campaign} />
         <div className="flex flex-wrap gap-3">
-          {stages.map(([count, label], index) => (
+          {stages.map(([count, label]) => (
             <button
               className={`min-w-[150px] min-h-12 py-3 pl-4 pr-8 text-sm font-bold text-left transition-colors relative ${
                 stage === label

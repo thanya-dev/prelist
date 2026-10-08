@@ -1,5 +1,5 @@
 import { DAY_MS, parseDay } from '../../utils/formatDate.js';
-import { CONTENT_SCOPE_GROUPS } from '../job-postings/CreatorCriteriaFields.jsx';
+import { CONTENT_SCOPE_GROUPS } from '../job-postings/creatorCriteriaOptions.js';
 
 // Only matching campaign fields are inherited. OP, Group, workflow and points stay independent.
 export const POSTING_CAMPAIGN_FIELDS = [

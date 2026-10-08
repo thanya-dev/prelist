@@ -13,7 +13,7 @@ import {
   FileText,
   List,
   SquaresFour,
-  Storefront,
+  Eye,
   User,
   Users,
   X,
@@ -24,8 +24,8 @@ import {
 } from '@phosphor-icons/react';
 import { SEED_JOB_POSTINGS } from './jobPostingSeeds.js';
 import { getJobPostings } from './jobPostingApi.js';
-import { JobPostingSummary } from './JobPostingSummary.jsx';
-import { JobPostingInformation } from './JobPostingInformation.jsx';
+import { JobPostingSummary } from '../../components/shared/JobPostingSummary.jsx';
+import { JobPostingInformation } from '../../components/shared/JobPostingInformation.jsx';
 import { Sidebar } from '../../components/layout/Sidebar.jsx';
 import { PRELIST_REVIEWERS } from '../projects/prelistSeeds.js';
 export function JobPostingDetail() {
@@ -250,7 +250,7 @@ export function JobPostingDetail() {
                 );
               }}
             >
-              <Storefront /> พรีวิวประกาศ
+              <Eye /> พรีวิวประกาศ
             </button>
             <button
               className="secondary-button border-[#bfdbfe]! bg-[#eff6ff]! text-[#2563eb]!"

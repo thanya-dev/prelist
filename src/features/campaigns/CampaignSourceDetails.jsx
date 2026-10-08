@@ -1,6 +1,6 @@
 import { LockSimple } from '@phosphor-icons/react';
-import { JobPostingSummary } from '../job-postings/JobPostingSummary.jsx';
-import { JobPostingInformation } from '../job-postings/JobPostingInformation.jsx';
+import { JobPostingSummary } from '../../components/shared/JobPostingSummary.jsx';
+import { JobPostingInformation } from '../../components/shared/JobPostingInformation.jsx';
 
 export function CampaignSourceDetails({ campaign, summaryLabel = 'ข้อมูลจากประกาศ' }) {
   const source = campaign.sourcePosting;

@@ -418,3 +418,7 @@ Brief Detail announcement table removes Follower Range display and names the cri
 Job Posting Detail summary shows saved social platform logos immediately after the title in the same row, using shared PlatformLogo at 16px with accessible names/tooltips. Keep status after the title/logo group and allow long titles to wrap responsively.
 
 Social platform icons beside announcement titles use inline-flex wrappers with centered alignment and no text line-height gap, so the 16px logos align vertically with the title text.
+
+Job Posting Detail พรีวิวประกาศ action uses the Eye icon.
+
+Reusable presentational components belong in `src/components/ui` or `src/components/shared`. Keep feature-specific state, persistence, validation and domain option constants in `src/features`; reuse shared components through props while preserving existing UI and behavior.

@@ -3162,6 +3162,7 @@
     @apply p-[18px];
     border-top: 1px solid #edf0f5;
     font-size: 13px;
+    vertical-align: top;
   }
   .posting-table td button {
     color: #34304c;
@@ -5576,7 +5577,7 @@
     min-width: 180px;
   }
   .brief-detail-page .posting-table td {
-    vertical-align: middle;
+    vertical-align: top;
   }
   .brief-detail-page .posting-table-criteria {
     min-width: 280px;

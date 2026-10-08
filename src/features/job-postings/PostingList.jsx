@@ -6,7 +6,6 @@ import { useCopy } from '../../hooks/useCopy.js';
 import { SEED_JOB_POSTINGS } from './jobPostingSeeds.js';
 import { getJobPostings } from './jobPostingApi.js';
 import { getRecruitmentPeriod } from './recruitmentStatuses.js';
-import { getAnnouncementCriteria } from './announcementForm.js';
 import { PlatformIcons } from '../../components/shared/PlatformIcons.jsx';
 
 const POSTINGS_PAGE_SIZE = 10;
@@ -143,17 +142,12 @@ export function PostingList({ briefId, onCreate }) {
                 <tr>
                   <th style={{ width: '60px' }}>No.</th>
                   <th>ประกาศ</th>
-                  <th>Special Criteria</th>
                   <th>สถานะ</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedJobs.map((job, index) => {
-                  const criteria = getAnnouncementCriteria(job)
-                    .flatMap((criterion) => criterion.split(/\s*·\s*|\r?\n/))
-                    .map((criterion) => criterion.trim())
-                    .filter(Boolean);
                   const isActive =
                     job.status !== 'Draft' &&
                     job.status !== 'แบบร่าง' &&
@@ -207,19 +201,6 @@ export function PostingList({ briefId, onCreate }) {
                           </span>
                         </div>
                       </td>
-                      <td className="posting-table-criteria">
-                        <div className="flex flex-col gap-2">
-                          {criteria.length ? (
-                            <ul className="m-0 flex list-none flex-col gap-2 p-0">
-                              {criteria.map((criterion, criterionIndex) => (
-                                <li key={`${criterion}-${criterionIndex}`}>{criterion}</li>
-                              ))}
-                            </ul>
-                          ) : (
-                            '-'
-                          )}
-                        </div>
-                      </td>
                       <td>{badge(job)}</td>
                       <td>
                         <div
@@ -230,6 +211,13 @@ export function PostingList({ briefId, onCreate }) {
                             alignItems: 'stretch',
                           }}
                         >
+                          <button
+                            className="posting-row-action flex items-center justify-center w-full border border-[#3b82f6] text-[#3b82f6] hover:bg-[#eff6ff] rounded-md font-medium transition-colors"
+                            style={{ padding: '4px 10px' }}
+                            onClick={() => openJob(job)}
+                          >
+                            ดูรายละเอียดงาน ↗
+                          </button>
                           <div
                             className="relative group inline-block w-full"
                             style={{ cursor: !isActive ? 'not-allowed' : 'pointer' }}
@@ -262,13 +250,6 @@ export function PostingList({ briefId, onCreate }) {
                               </div>
                             )}
                           </div>
-                          <button
-                            className="posting-row-action flex items-center justify-center w-full border border-[#3b82f6] text-[#3b82f6] hover:bg-[#eff6ff] rounded-md font-medium transition-colors"
-                            style={{ padding: '4px 10px' }}
-                            onClick={() => openJob(job)}
-                          >
-                            ดูรายละเอียดงาน ↗
-                          </button>
                         </div>
                       </td>
                     </tr>

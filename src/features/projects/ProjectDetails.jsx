@@ -146,6 +146,7 @@ export function ProjectDetails({ project, onBack, onEdit }) {
             }}
           >
             <div
+              className="project-campaign-actions"
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',

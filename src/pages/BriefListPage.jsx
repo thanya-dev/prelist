@@ -1,6 +1,9 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { JobPostingFormModal } from '../features/job-postings/JobPostingFormModal.jsx';
+import { useState, useEffect } from 'react';
+import { Skeleton } from '../components/ui/Skeleton.jsx';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CaretRight, ListMagnifyingGlass, MagnifyingGlass, Plus } from '@phosphor-icons/react';
+import { BriefFormModal } from '../features/briefs/BriefFormModal.jsx';
 import { getBriefs } from '../features/briefs/briefApi.js';
 import { BriefSummary } from '../features/briefs/BriefSummary.jsx';
 import { Sidebar } from '../components/layout/Sidebar.jsx';
@@ -12,6 +15,26 @@ import {
 
 export function BriefListPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [isCreateOpen, setIsCreateOpen] = useState(searchParams.get('create') === '1');
+  const [isCreatePostingOpen, setIsCreatePostingOpen] = useState(
+    searchParams.get('createPosting') === '1',
+  );
+  const handleClosePosting = () => {
+    setIsCreatePostingOpen(false);
+    const next = new URLSearchParams(searchParams);
+    next.delete('createPosting');
+    next.delete('copyFrom');
+    setSearchParams(next, { replace: true });
+  };
+  const handleCloseCreate = () => {
+    setIsCreateOpen(false);
+    if (searchParams.has('create')) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('create');
+      setSearchParams(next, { replace: true });
+    }
+  };
   const [query, setQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -30,12 +53,36 @@ export function BriefListPage() {
     validCurrentPage * pageSize,
   );
 
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <div className="app-shell">
+      {isCreatePostingOpen && (
+        <JobPostingFormModal
+          onClose={handleClosePosting}
+          onSave={(saved, isDraft) => {
+            handleClosePosting();
+            if (!isDraft) navigate(`/job-postings/${saved.id}`);
+          }}
+        />
+      )}
+      {isCreateOpen && (
+        <BriefFormModal
+          onClose={handleCloseCreate}
+          onSave={(briefId) => {
+            handleCloseCreate();
+            navigate(`/briefs/${briefId}`);
+          }}
+        />
+      )}
       <Sidebar />
       <main className="list-main briefs-main">
         <div className="breadcrumbs">
-          Management <CaretRight /> <b>รายการ Brief</b>
+          ประกาศหานักรีวิว <CaretRight /> <b>รายการบรีฟ</b>
         </div>
         <div className="page-actions gap-6 mt-6 mb-8 max-[760px]:gap-3">
           <h1>รายการ Brief</h1>
@@ -51,12 +98,29 @@ export function BriefListPage() {
               placeholder="ค้นหาด้วยชื่อบรีฟ หรือ Brief ID"
             />
           </label>
-          <button className="primary" onClick={() => navigate('/briefs/create')}>
+          <button className="primary" onClick={() => setIsCreateOpen(true)}>
             <Plus size={18} /> สร้างบรีฟ
           </button>
         </div>
         <section className="project-list grid gap-5" aria-label="รายการ Brief">
-          {paginatedBriefs.length ? (
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <article key={`skeleton-${i}`} className="project-card brief-card gap-6 pt-5 pr-8 pb-5 pl-5 max-[760px]:gap-4 max-[760px]:p-3">
+                <div className="flex flex-1 items-start gap-4">
+                  <Skeleton className="w-24 h-24 max-[760px]:w-16 max-[760px]:h-16 shrink-0" />
+                  <div className="flex-1 min-w-0" style={{ paddingTop: '8px' }}>
+                    <Skeleton className="w-1/3 h-6 mb-3" />
+                    <Skeleton className="w-32 h-7 rounded-full mb-4" />
+                    <div className="flex gap-2">
+                      <Skeleton className="w-20 h-6" />
+                      <Skeleton className="w-20 h-6" />
+                      <Skeleton className="w-20 h-6" />
+                    </div>
+                  </div>
+                </div>
+              </article>
+            ))
+          ) : paginatedBriefs.length ? (
             paginatedBriefs.map((brief) => {
               const linkedPostings = postings.filter((posting) => posting.brief === brief.id);
               const statusCounts = linkedPostings.reduce((counts, posting) => {

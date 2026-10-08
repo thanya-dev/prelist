@@ -1,7 +1,7 @@
 export const Field = ({ label, required, children, hint, error }) => (
   <label className="field gap-2">
     <span>
-      {label} {required && <b>*</b>}
+      {label} {required && <b className="text-[#f05b60]">*</b>}
     </span>
     {hint && <small>{hint}</small>}
     {children}

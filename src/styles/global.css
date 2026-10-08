@@ -42,7 +42,8 @@
   }
   button,
   input,
-  select {
+  select,
+  textarea {
     font: inherit;
   }
   button {
@@ -3313,6 +3314,10 @@
     background: #e5e7eb;
     color: #687080;
   }
+  .posting-badge.all {
+    background: #f4e8ff;
+    color: #8c42db;
+  }
   .posting-drafts {
     display: flex;
     align-items: center;
@@ -3339,6 +3344,9 @@
     min-width: 700px;
   }
   .posting-table th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
     text-align: left;
     background: #f8fafc;
     color: #64748b;
@@ -3398,6 +3406,7 @@
 
   /* Brief list uses bounded thumbnails and independent readable content. */
   .brief-card {
+    min-height: auto;
     align-items: center;
     cursor: default;
   }
@@ -3855,12 +3864,16 @@
     font-weight: 600;
     overflow-wrap: anywhere;
   }
+  .posting-summary .project-info {
+    @apply flex flex-col gap-3;
+  }
   .posting-summary .owner {
+    @apply m-0;
     color: #59677e;
     line-height: 1.7;
   }
   .posting-summary .project-info > small {
-    @apply block mt-3;
+    @apply block m-0;
     color: var(--muted);
     font-size: 13px;
   }
@@ -4902,7 +4915,7 @@
     @apply text-muted;
   }
   .cw-picker-row {
-    @apply flex items-center gap-3 px-3 border-b border-line;
+    @apply flex items-start gap-4 px-4 border-b border-line;
   }
   .cw-picker-row:last-child {
     @apply border-b-0;
@@ -4914,10 +4927,10 @@
     background: #eff7ff;
   }
   .cw-picker-option {
-    @apply flex flex-1 min-w-0 items-center gap-3 py-3 cursor-pointer;
+    @apply flex flex-1 min-w-0 items-start gap-4 py-4 cursor-pointer;
   }
   .cw-picker-option input {
-    @apply m-0 h-4 w-4 shrink-0;
+    @apply m-0 mt-[2px] h-4 w-4 shrink-0;
     accent-color: #3286d3;
   }
   .cw-picker-copy {
@@ -4930,7 +4943,7 @@
     @apply text-xs text-muted break-words;
   }
   .cw-picker-row > a {
-    @apply flex shrink-0 items-center justify-center w-8 h-8 rounded text-[#3286d3];
+    @apply flex shrink-0 items-center justify-center w-8 h-8 mt-3 rounded text-[#3286d3];
   }
   .cw-picker-row > a:hover {
     background: #dceeff;
@@ -5267,13 +5280,13 @@
     @apply gap-6 p-6;
   }
   .brief-detail-page .brief-summary-title {
-    @apply text-2xl font-semibold;
+    @apply text-xl font-semibold;
   }
   .brief-detail-page .brief-summary-brand {
     @apply text-sm;
   }
   .brief-detail-page .brief-posting-calendar {
-    @apply rounded-lg border border-solid border-line bg-white p-6;
+    @apply mt-8 border-0 bg-transparent p-0;
   }
   .brief-detail-page .posting-page-heading {
     @apply mt-0 mb-6;
@@ -5292,7 +5305,6 @@
   }
   @media (max-width: 760px) {
     .brief-detail-page .project-summary,
-    .brief-detail-page .brief-posting-calendar,
     .brief-detail-page .brief-products-section {
       @apply p-3;
     }
@@ -5501,5 +5513,304 @@
     .posting-save-actions button {
       @apply min-w-0 px-3 text-sm;
     }
+  }
+}
+
+.job-posting-form textarea {
+  font-family: inherit;
+}
+
+/* UI spacing audit: use one source of spacing per container. */
+@layer components {
+  .list-main {
+    min-width: 0;
+  }
+  .breadcrumbs {
+    flex-wrap: wrap;
+    @apply gap-2;
+  }
+  .field > small {
+    @apply m-0;
+  }
+  .job-posting-form .form-card > h3 {
+    @apply m-0 text-lg font-semibold;
+  }
+  .job-posting-form .form-card > p {
+    @apply m-0;
+  }
+  .job-posting-form .form-card > h3 + p {
+    margin-top: -16px;
+  }
+  .reviewer-table-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    border-radius: 8px;
+  }
+  .reviewer-table-scroll > table {
+    min-width: 1000px;
+  }
+  .confirm-list-panel {
+    min-width: 0;
+  }
+  .confirm-list-actions > button {
+    flex-shrink: 0;
+  }
+  .campaign-wizard .cw-preview > h3 {
+    @apply mb-6;
+  }
+  .campaign-wizard .cw-preview > dl {
+    @apply my-4;
+  }
+  .campaign-wizard .cw-preview > dl dt {
+    @apply mt-4 mb-2;
+  }
+  .campaign-wizard .cw-preview > dl dt:first-child {
+    @apply mt-0;
+  }
+  .campaign-wizard .cw-audit {
+    @apply mt-8;
+  }
+  @media (max-width: 760px) {
+    .job-posting-form .form-card {
+      @apply gap-4;
+    }
+    .job-posting-form .form-card > h3 + p {
+      margin-top: -8px;
+    }
+    .confirm-list-actions > div:first-child {
+      flex-basis: 100%;
+    }
+    .confirm-list-panel .approved-table-wrap {
+      max-width: 100%;
+    }
+    .job-posting-form .prelist-sticky {
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+    }
+  }
+}
+
+@layer components {
+  .reviewer-list-controls {
+    flex-wrap: wrap;
+    @apply gap-3;
+  }
+  .reviewer-status-tabs {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .reviewer-status-tabs > button {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  @media (max-width: 760px) {
+    .reviewer-status-tabs {
+      flex-basis: 100%;
+    }
+    .reviewer-list-controls > div:last-child {
+      margin-left: auto;
+    }
+  }
+}
+
+@layer components {
+  .project-campaign-actions {
+    flex-wrap: wrap;
+    @apply gap-3;
+  }
+  .project-campaign-actions h2 {
+    @apply m-0 text-xl font-semibold;
+  }
+  .project-campaign-actions > button {
+    flex-shrink: 0;
+    white-space: nowrap;
+    @apply px-4;
+  }
+  @media (max-width: 760px) {
+    .project-campaign-actions > button {
+      margin-left: auto;
+    }
+  }
+}
+
+@layer components {
+  .field {
+    min-width: 0;
+  }
+}
+
+@layer components {
+  .announcement-rich-text ul {
+    list-style: disc;
+    padding-left: 24px;
+  }
+  .announcement-rich-text ol {
+    list-style: decimal;
+    padding-left: 24px;
+  }
+  .announcement-rich-text p,
+  .announcement-rich-text div {
+    margin-bottom: 8px;
+  }
+}
+
+.posting-form-backdrop {
+  padding: 16px;
+}
+.posting-form-dialog {
+  width: min(100%, 900px);
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 24px 64px #18202d33;
+  overflow: hidden;
+}
+.posting-form-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+.posting-form-modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+.posting-form-dialog .job-posting-form {
+  min-height: 0;
+  padding: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #f8fafc;
+}
+.posting-form-dialog .form-head {
+  margin: 0;
+  padding: 0 24px;
+}
+.posting-form-dialog .form-head:empty {
+  display: none;
+}
+.posting-form-dialog .posting-copy-button {
+  position: static;
+  margin-top: 16px;
+}
+.posting-form-dialog .job-posting-form .form-wrap {
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 24px;
+  padding-bottom: 24px;
+}
+.posting-form-dialog .job-posting-form .prelist-sticky {
+  position: sticky;
+  bottom: 0;
+  left: auto;
+  right: auto;
+  width: auto;
+  padding: 16px 24px;
+  z-index: 2;
+}
+.posting-form-dialog .posting-save-dialog {
+  position: relative;
+}
+.posting-form-dialog .modal-backdrop {
+  z-index: 70;
+}
+@media (max-width: 480px) {
+  .posting-form-backdrop {
+    padding: 8px;
+  }
+  .posting-form-dialog {
+    max-height: calc(100dvh - 16px);
+  }
+  .posting-form-modal-header {
+    padding: 12px;
+  }
+  .posting-form-dialog .job-posting-form .form-wrap {
+    padding: 12px;
+  }
+  .posting-form-dialog .job-posting-form .prelist-sticky {
+    padding: 12px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+  .posting-form-dialog .job-posting-form .prelist-sticky > div:last-child {
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .posting-form-dialog .job-posting-form .prelist-sticky button {
+    min-width: 0;
+    white-space: normal;
+  }
+}
+.posting-form-dialog .job-posting-form .form-head {
+  min-height: 0;
+  height: auto;
+  padding: 0 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Shared typography and spacing for the continuous announcement form. */
+.job-posting-form .announcement-section-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 28px;
+  color: #374151;
+}
+.job-posting-form .announcement-field-label,
+.job-posting-form .field > span {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: #374151;
+}
+.job-posting-form .form-card p {
+  margin: 0;
+  line-height: 24px;
+}
+.job-posting-form .form-card {
+  gap: 24px;
+}
+@media (max-width: 480px) {
+  .posting-form-dialog .job-posting-form .form-card {
+    padding: 12px !important;
+    gap: 16px;
+  }
+  .posting-form-dialog .job-posting-form .form-wrap {
+    gap: 16px;
+  }
+}
+
+@layer components {
+  .announcement-rich-text a[href] {
+    color: var(--primary, #6024ed);
+    text-decoration: underline;
+    overflow-wrap: anywhere;
+  }
+  .announcement-rich-text img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-top: 16px;
+  }
+}
+
+@layer components {
+  .announcement-rich-text strong,
+  .announcement-rich-text b {
+    font-weight: 700;
+  }
+  .announcement-rich-text em,
+  .announcement-rich-text i {
+    font-style: italic;
   }
 }

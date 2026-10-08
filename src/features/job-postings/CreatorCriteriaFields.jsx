@@ -37,6 +37,7 @@ export function CreatorCriteriaFields({
   onTogglePlatform,
   onSelectScope,
   errors,
+  showGoals = true,
 }) {
   const renderError = (key) =>
     errors[key] && (
@@ -74,34 +75,36 @@ export function CreatorCriteriaFields({
   );
   return (
     <div className="creator-criteria-reference">
-      <section className="creator-panel">
-        <h3>Goals</h3>
-        {[
-          ['target', 'Target influencer', 'จำนวนนักรีวิวทั้งหมดในแคมเปญ', 'คน', Users, 1],
-          ['targetPost', 'Target post', 'จำนวนโพสต์ทั้งหมดในแคมเปญ', 'โพสต์', NotePencil, 0],
-        ].map(([key, label, hint, unit, Icon, min]) => (
-          <div className="creator-field" key={key}>
-            <label className="creator-label" htmlFor={`creator-${key}`}>
-              {label} <b>*</b>
-            </label>
-            <p>{hint}</p>
-            <div className="creator-unit">
-              <div>
-                <Icon size={18} />
-                <input
-                  id={`creator-${key}`}
-                  type="number"
-                  min={min}
-                  value={values[key]}
-                  onChange={(event) => onChange(key, event.target.value)}
-                />
+      {showGoals && (
+        <section className="creator-panel">
+          <h3>Goals</h3>
+          {[
+            ['target', 'Target influencer', 'จำนวนนักรีวิวทั้งหมดในแคมเปญ', 'คน', Users, 1],
+            ['targetPost', 'Target post', 'จำนวนโพสต์ทั้งหมดในแคมเปญ', 'โพสต์', NotePencil, 0],
+          ].map(([key, label, hint, unit, Icon, min]) => (
+            <div className="creator-field" key={key}>
+              <label className="creator-label" htmlFor={`creator-${key}`}>
+                {label} <b>*</b>
+              </label>
+              <p>{hint}</p>
+              <div className="creator-unit">
+                <div>
+                  <Icon size={18} />
+                  <input
+                    id={`creator-${key}`}
+                    type="number"
+                    min={min}
+                    value={values[key]}
+                    onChange={(event) => onChange(key, event.target.value)}
+                  />
+                </div>
+                <span>{unit}</span>
               </div>
-              <span>{unit}</span>
+              {renderError(key)}
             </div>
-            {renderError(key)}
-          </div>
-        ))}
-      </section>
+          ))}
+        </section>
+      )}
       <section className="creator-panel">
         <label className="creator-label" htmlFor="creator-target-group">
           Target group

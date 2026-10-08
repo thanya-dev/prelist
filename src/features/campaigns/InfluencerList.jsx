@@ -268,16 +268,10 @@ export function InfluencerList() {
     </button>
   );
   return (
-    <section className="pt-8 pb-16 text-[#484848]">
-      <div className="flex items-center gap-3">
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-          }}
-        >
-          <h2 className="m-0 mr-2 text-xl font-bold">INFLUENCER LIST</h2>
+    <section className="confirm-list-panel pt-6 pb-16 text-[#484848]">
+      <div className="confirm-list-actions flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-4 min-w-0">
+          <h2 className="m-0 mr-2 text-xl font-bold">CONFIRM LIST</h2>
           <a
             className="reviewer-confirmed-link"
             style={{
@@ -322,7 +316,7 @@ export function InfluencerList() {
           <CurrencyDollar /> External payment
         </button>
         <button
-          className="ml-auto inline-flex items-center gap-2 text-sm font-semibold text-white bg-[#6545ff] px-5 py-2 rounded-lg hover:shadow-lg hover:-translate-y-[1px] transition-all"
+          className="sm:ml-auto inline-flex items-center gap-2 text-sm font-semibold text-white bg-[#6545ff] px-5 py-2 rounded-lg hover:shadow-lg hover:-translate-y-[1px] transition-all"
           onClick={() => {
             setImportOpen(true);
             setImportError('');
@@ -337,7 +331,7 @@ export function InfluencerList() {
           <LinkSimple size={18} /> Import post
         </button>
       </div>
-      <div className="grid grid-cols-3 gap-6 mt-4 mb-2">
+      <div className="grid grid-cols-1 min-[500px]:grid-cols-3 gap-4 sm:gap-6 mt-6 mb-2">
         <div>
           <strong className="block text-[28px] font-bold leading-tight">
             {31 + importedAccounts.length}
@@ -428,10 +422,10 @@ export function InfluencerList() {
             ),
           )}
         </div>
-        <div className="flex justify-between items-center gap-4">
+        <div className="flex flex-wrap justify-between items-center gap-3">
           <label className="flex items-center gap-2 p-2 bg-white border border-[#dce4ee] rounded-md w-full max-w-[320px] focus-within:border-[#6545ff] focus-within:ring-2 focus-within:ring-[#6545ff]/20 transition-all">
             <input
-              className="flex-1 border-none outline-none text-[#273348] placeholder-[#7f8ca4] text-sm px-2"
+              className="min-w-0 flex-1 border-none outline-none text-[#273348] placeholder-[#7f8ca4] text-sm px-2"
               placeholder="Search by Username"
               value={query}
               onChange={(event) => setQuery(event.target.value)}

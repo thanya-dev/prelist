@@ -1,5 +1,5 @@
 import { AppRoutes } from './AppRoutes.jsx';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check } from '@phosphor-icons/react';
 import { useProjects } from '../features/projects/useProjects.js';
@@ -11,6 +11,14 @@ export function App() {
   const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const navigate = useNavigate();
+  useEffect(() => {
+    const handleToast = (e) => {
+      setNotice(e.detail);
+      window.setTimeout(() => setNotice(''), 2500);
+    };
+    window.addEventListener('show-toast', handleToast);
+    return () => window.removeEventListener('show-toast', handleToast);
+  }, []);
   const exportPrelist = () => {
     const headers = [
       'Username',

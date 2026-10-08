@@ -9,7 +9,10 @@ export function JobPostingSaveModal({ isEditing, onClose, onConfirm }) {
     return () => previousFocus?.focus();
   }, []);
   const handleKeyDown = (event) => {
-    if (event.key === 'Escape') onClose();
+    if (event.key === 'Escape') {
+      event.stopPropagation();
+      onClose();
+    }
     if (event.key === 'Tab') {
       const buttons = [...dialogRef.current.querySelectorAll('button')];
       const first = buttons[0];
@@ -47,7 +50,12 @@ export function JobPostingSaveModal({ isEditing, onClose, onConfirm }) {
           {isEditing ? 'ยืนยันบันทึกการแก้ไข' : 'ยืนยันสร้างประกาศ'}
         </h2>
         <div className="posting-save-preview">
-          <p>ตรวจสอบหน้าประกาศก่อนยืนยัน</p>
+          <p style={{ marginBottom: '16px' }}>ตรวจสอบหน้าประกาศก่อนยืนยัน</p>
+          <img
+            src="/assets/preview.png"
+            alt="Preview"
+            style={{ width: '280px', maxWidth: '100%', height: 'auto', marginBottom: '16px' }}
+          />
           <button
             type="button"
             className="primary posting-preview-button"
@@ -59,7 +67,7 @@ export function JobPostingSaveModal({ isEditing, onClose, onConfirm }) {
               )
             }
           >
-            <ArrowSquareOut size={20} /> Preview ประกาศ
+            <ArrowSquareOut size={20} /> พรีวิวประกาศ
           </button>
           <small>เปิด Preview ในแท็บใหม่</small>
         </div>

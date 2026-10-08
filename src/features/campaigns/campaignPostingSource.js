@@ -6,8 +6,6 @@ export const POSTING_CAMPAIGN_FIELDS = [
   'campaignType',
   'subtitle',
   'cover',
-  'target',
-  'targetPost',
   'targetGroup',
   'genders',
   'ageMin',
@@ -22,7 +20,6 @@ export const POSTING_CAMPAIGN_FIELDS = [
   'campaignEnd',
   'brief',
   'reward',
-  'products',
 ];
 function normalizeDate(value) {
   const day = parseDay(value);
@@ -35,13 +32,10 @@ export function getCampaignPostingFields(postings) {
   const first = sourcePostings[0];
 
   return {
-    ...(Array.isArray(first.products) ? { products: first.products } : {}),
     campaignType: first.campaignType ?? '',
     name: first.name ?? '',
     subtitle: first.subtitle ?? '',
     cover: first.image ?? '',
-    target: sourcePostings.reduce((sum, p) => sum + (Number(p.reviewers) || 0), 0) || '',
-    targetPost: sourcePostings.reduce((sum, p) => sum + (Number(p.targetPost) || 0), 0) || '',
     targetGroup: first.targetGroup ?? '',
     genders: [
       ...new Set(
@@ -77,7 +71,7 @@ export function getCampaignPostingFields(postings) {
     applicationEnd: normalizeDate(first.deadline),
     campaignStart: normalizeDate(first.startDate),
     campaignEnd: normalizeDate(first.endDate),
-    brief: first.shortBrief ?? '',
+    brief: [first.scopeOfWork, first.shortBrief].filter(Boolean).join('\n\n'),
     reward: first.benefit ?? '',
   };
 }

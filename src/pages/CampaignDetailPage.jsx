@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CaretDown, Copy, MagnifyingGlass, Plus } from '@phosphor-icons/react';
 import { getCampaignById } from '../features/campaigns/campaignApi.js';
@@ -6,11 +6,25 @@ import { SEED_PROJECTS } from '../features/projects/projectSeeds.js';
 import { BrandMark } from '../components/shared/BrandMark.jsx';
 import { Logo } from '../components/layout/Logo.jsx';
 import { CampaignSourceDetails } from '../features/campaigns/CampaignSourceDetails.jsx';
+import { AnnouncementReviewerImport } from '../features/campaigns/AnnouncementReviewerImport.jsx';
+import { getCampaignAnnouncementReviewers } from '../features/campaigns/campaignAnnouncementImport.js';
+import { CampaignInfluencerList } from '../features/campaigns/CampaignInfluencerList.jsx';
+import { CAMPAIGN_INFLUENCERS } from '../features/campaigns/campaignInfluencerSeeds.js';
 import { InfluencerList } from '../features/campaigns/InfluencerList.jsx';
 export function CampaignDetailPage({ onBack }) {
   const navigate = useNavigate();
   const { id } = useParams();
   const campaign = getCampaignById(id);
+  const [importedReviewers, setImportedReviewers] = useState(() =>
+    getCampaignAnnouncementReviewers(id),
+  );
+  useEffect(() => {
+    setImportedReviewers(getCampaignAnnouncementReviewers(id));
+  }, [id]);
+  const influencers = [
+    ...(id === 'page-promotion-facebook' ? CAMPAIGN_INFLUENCERS : []),
+    ...importedReviewers,
+  ];
   const [stage, setStage] = useState('INFLUENCER LIST');
   if (!campaign)
     return (
@@ -20,7 +34,8 @@ export function CampaignDetailPage({ onBack }) {
       </main>
     );
   const stages = [
-    ['31', 'INFLUENCER LIST'],
+    [String(influencers.length), 'INFLUENCER LIST'],
+    ['31', 'CONFIRM LIST'],
     ['0', 'CONTENT IDEA'],
     ['0', 'DRAFTING'],
     ['0', 'POSTS'],
@@ -136,26 +151,37 @@ export function CampaignDetailPage({ onBack }) {
               onClick={() => setStage(label)}
               key={label}
             >
-              <b className="mr-2">{label === 'INFLUENCER LIST' ? '31' : count}</b> {label}
-            </button>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-3 mt-4 mb-6">
-          {[
-            ['0', 'ADMIN IGNORED'],
-            ['0', 'BRAND IGNORED'],
-            ['1', 'CANCELED'],
-            ['0', 'RESERVED'],
-          ].map(([count, label]) => (
-            <button
-              key={label}
-              className="min-w-[160px] min-h-10 py-2 px-4 border-2 border-[#d4d4d4] rounded-lg text-[#aaa] text-sm font-bold text-left hover:border-[#bbb] hover:text-[#888] transition-colors"
-            >
               <b className="mr-2">{count}</b> {label}
             </button>
           ))}
         </div>
+        {stage !== 'INFLUENCER LIST' && (
+          <div className="flex flex-wrap gap-3 mt-4 mb-6">
+            {[
+              ['0', 'ADMIN IGNORED'],
+              ['0', 'BRAND IGNORED'],
+              ['1', 'CANCELED'],
+              ['0', 'RESERVED'],
+            ].map(([count, label]) => (
+              <button
+                key={label}
+                className="min-w-[160px] min-h-10 py-2 px-4 border-2 border-[#d4d4d4] rounded-lg text-[#aaa] text-sm font-bold text-left hover:border-[#bbb] hover:text-[#888] transition-colors"
+              >
+                <b className="mr-2">{count}</b> {label}
+              </button>
+            ))}
+          </div>
+        )}
         {stage === 'INFLUENCER LIST' ? (
+          <div className="mt-6">
+            <AnnouncementReviewerImport
+              campaign={campaign}
+              project={SEED_PROJECTS.find((project) => project.id === campaign.projectId)}
+              onImport={setImportedReviewers}
+            />
+            <CampaignInfluencerList reviewers={influencers} />
+          </div>
+        ) : stage === 'CONFIRM LIST' ? (
           <InfluencerList />
         ) : (
           <div className="space-y-6">

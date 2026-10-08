@@ -13,7 +13,7 @@ const formatDate = (value) => {
 };
 
 export function CampaignSettingPreview({ campaign, project }) {
-  const sourcePosting = campaign.sourcePosting;
+  const sourcePosting = campaign.sourcePostings?.[0] || campaign.sourcePosting;
   return (
     <aside className="cw-preview" aria-label="Preview campaign setting">
       <h3>Preview campaign setting</h3>

@@ -30,9 +30,20 @@ export function updateJobPosting(jobPostingId, posting) {
 
 function resolvePostingBrief(posting) {
   const brief = getBriefById(posting.brief);
+  let applicants = posting.applicants;
+  if (posting.announcementVersion === 2) {
+    try {
+      applicants = Math.max(
+        Number(posting.applicants) || 0,
+        (JSON.parse(localStorage.getItem(`buddy-reviewers-${posting.id}`)) || []).length,
+      );
+    } catch {
+      /* Keep saved count. */
+    }
+  }
   return {
     ...posting,
+    applicants,
     brief: brief?.id || posting.brief,
-    ...(brief ? { products: brief.products } : {}),
   };
 }

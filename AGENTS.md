@@ -323,3 +323,72 @@ Job Posting Detail places its แก้ไข action at the top-right of the sum
 Job Posting reviewer selection toolbar keeps select-all and the count left-aligned, with the count formatted (เลือก N คน). Group bulk Reject / Accept actions at the right edge, preserving Reject before Accept.
 
 The bulk Reject button in the Job Posting reviewer selection toolbar uses a red outline, red text/icon and white background, with a pale-red hover state. Keep the disabled state when no reviewers are selected.
+
+Campaign Task stage tabs start with Influencer List → Confirm List → Content Idea → Drafting → Posts. Confirm List is the renamed existing Influencer List and retains its table and tools. The new Influencer List is a separate tab before Confirm List; its data and workflow are not yet specified.
+
+Campaign Influencer List follows the supplied five-row reference: status pills ทั้งหมด, รอทีมงานตรวจสอบ, รอนักรีวิวยืนยัน, นักรีวิวยืนยันแล้ว with counts and filtering; table columns นักรีวิว, แคมเปญ, ประเภทนักรีวิว, สถานะ, รหัสแคมเปญ. Include profile/platform and via information, campaign platforms, Normal or ยังไม่ระบุ, colored status badges and copyable confirmed codes; unconfirmed codes show ยังไม่ยืนยัน. Use reference sample rows until a data source is specified; keep Confirm List separate.
+
+Campaign Influencer List hides the ADMIN IGNORED, BRAND IGNORED, CANCELED and RESERVED secondary-status row. Keep its own status filter pills 24px below the campaign stage tabs. Other stages retain their existing secondary-status row.
+
+Campaign Influencer List displays the buyer-review status as รอทีมงานตรวจสอบ in filters, table badges and profile information, superseding Buyer ตรวจสอบ. Preserve the existing internal status value and orange badge styling.
+
+Brief Create/Edit labels the name field Brief Name (stored in existing name), has exactly one editable Brief ID with existing format/duplicate validation, and retains Product Option. Remove repeatable ID add/delete/reorder controls; keep legacy IDs resolving after edits. Goals belong to Campaign Create/Edit: editable Target influencer and Target post, including campaigns with source postings, saved independently of inherited posting criteria. Brief has no Goals section.
+
+Announcement Create/Edit keeps the existing four-step wizard but uses Confidential only, no campaign-type choice, target counts, image uploads or separate gender/age inputs. Special Criteria is a combined free-text field for expertise and demographic requirements. Target Group Name is generated from Special Criteria, Platform and Follower Range. Scope of Work uses a template and a short editable supplement (200 characters). Owner remains editable; compensation explicitly stores wage including travel and Product Value (zero allowed). Recruitment is controlled by Active/Inactive, separate from Draft; no recruitment dates. Retain optional campaign working dates and legacy saved values for compatibility. New-format Detail shows actual applicant count instead of targets. Manual-status undated announcements remain reachable from Calendar's undated Table link; old date-based announcements keep existing behavior until saved through the new form.
+Campaign forms add an Announcement ID selector without replacing the existing source picker. Campaign Influencer List previews applicants from linked project announcements, allows selecting import rows, excludes rejected accounts and duplicates, and persists imported reviewers per campaign. Imported applicants start รอทีมงานตรวจสอบ. New announcements have no global seed applicants; legacy sample announcements retain their sample reviewers.
+
+Brief Create/Edit is a compact single-card form with exactly two fields, ordered Brief Number / Work Order ID then Brief Name. Remove Brand, logo/product images, Product Option and redundant sections/ID check chips from the form. Require only these two fields, retaining current ID format and duplicate validation, explicit navigation and legacy ID aliases. Edit updates name/ID only, preserving previously saved Brand/images/products without requiring them. This supersedes all prior Brief form field/image/product requirements; do not delete existing saved content.
+
+Announcement Create/Edit displays all sections in one continuous form, without wizard stepper, step titles or Next/Previous actions. Keep the current section order, fields, draft/save confirmation and persistence; validation scrolls to the first invalid field on the same page. This supersedes the announcement four-step wizard.
+
+Brief Create/Edit uses a bounded modal over Brief List / Brief Detail with the existing two fields. Remove standalone Brief form pages. Create opens from สร้างบรีฟ; Edit opens from the summary edit action. Cancel, close, backdrop and Escape dismiss without navigating; preserve underlying filters/tab/calendar state. Creation saves and opens the new Brief Detail; editing refreshes Detail and navigates only if its ID changes. Legacy /briefs/create and /briefs/:id/edit links open the corresponding parent page with its modal. Include focus trapping/restoration and body scroll lock. Product Option has no add action because product editing was removed from Brief forms.
+
+Brief Detail recruitment postings use Table only. Remove Calendar mode and the Calendar/Table toggle from Brief Detail, retaining search, status filters/counts and linked-posting scope. This supersedes previous Brief Detail Calendar requirements.
+
+Remove Product Option from every page, including tabs, product lists, add/edit controls and campaign source inheritance. Preserve previously saved product data for compatibility. Compensation Product Value and benefit fields remain separate from Product Option. This supersedes all earlier Product Option UI requirements.
+
+Brief Number in the Create/Edit modal validates XXXYYYYMMNNN inline while typing and on blur/save: three English letters, four AD-year digits, month 01–12 and sequence 000–999 (12 characters total). Normalize letters to uppercase, show the format/example and clear Thai errors, reject duplicate IDs including legacy aliases, and block invalid saves.
+
+UI spacing recipes use container gap as the main source of spacing; reset direct heading/paragraph margins rather than adding duplicate margins. Dense reviewer/Confirm tables must scroll inside bounded containers without widening the document. Keep filter/action bars readable by wrapping actions and scrolling long tab rows. Verify desktop, 390px and relevant 320px cases when changing forms/tables; Announcement optional working dates stack at ≤480px for readable inputs.
+
+Announcement Create/Edit uses Draft / Active / Inactive radio options. Draft saves require only a title and preserve partial fields; Active/Inactive saves require full validation. Combine Special Criteria, Platform and Follower Range into one section. Remove generated Target Group Name from announcement forms and Detail. Place Announcement Title, Subtitle and additional job details together in the final section of forms and Detail; job details use a rich text editor and retain formatting on save/reopen/Detail with safe rendering and legacy plain-text compatibility.
+
+Announcement forms remove the Confidential helper and use เปิดหรือปิดรับสมัครด้วยสถานะ. Show matching colored status dots in Draft/Active/Inactive radios and Detail. Rename the criteria section คุณสมบัตินักรีวิว; Special Criteria is a multiple-selection dropdown with saved selections and legacy free-text compatibility. Follower MIN–MAX inputs have a centered dash and comma grouping while saved values remain numeric. Remove Scope of Work and Reference Brief Link UI/validation without erasing legacy saved values. Compensation labels are ค่าจ้างรวมค่าเดินทาง (บาท) and ค่าสินค้า (บาท).
+
+Announcement Special Criteria uses the fixed 42-option list in SPECIAL_CRITERIA_OPTIONS (src/features/job-postings/announcementForm.js), in the user-supplied order and exact wording. Allow multiple selections, retain legacy selected values when editing, and replace the provisional custom-add UI with this supplied list.
+
+Announcement compensation inputs ค่าจ้างรวมค่าเดินทาง (บาท) and ค่าสินค้า (บาท) display comma-grouped prices while typing and editing (for example 10,000). Preserve decimal entry, zero and empty draft values; save numeric amounts without formatting commas.
+
+Special Criteria must not show the empty legacy age placeholder อายุ - ปี (including อายุ – ปี). Do not generate it from blank age bounds, and omit that placeholder when reopening saved criteria; retain meaningful criteria and actual saved age ranges.
+
+Announcement status controls use a compact layout: group the heading and helper closely, place Draft / Active / Inactive alongside them on desktop, and stack options on narrow screens. Remove the redundant visible Status label; retain colored dots, blue selected states and accessible radio grouping.
+
+Job Posting Detail summary and information cards follow the current continuous Announcement Create/Edit form for all postings, including legacy records. Show current field labels/order, actual applicants, status, title/subtitle, criteria, optional working dates and wage/product value; use the same legacy criteria and wage fallback as Edit without deleting saved legacy fields.
+
+Announcement Create/Edit opens in a bounded modal over Brief Detail / Job Posting Detail, reusing the continuous form and save confirmation. Scroll the form inside the modal and keep its action footer visible. Close, Cancel, backdrop and Escape dismiss without navigating, preserving underlying filters/tabs/selection; trap and restore focus and lock body scroll. Legacy create/edit URLs open the appropriate parent with its modal; retain draft/public save destinations and saved fields. This supersedes standalone announcement form pages.
+
+Announcement Create/Edit sponsor product / Benefit textarea has a minimum of three visible text lines, with vertical resizing available.
+
+Remove sponsor product / Benefit detail from Announcement Create/Edit and Job Posting Detail. Preserve existing saved benefit values for compatibility. This supersedes the three-line Benefit textarea requirement; wage and product value remain.
+
+Job Posting คัดลอกประกาศ action belongs on Job Posting Detail outside the edit modal, alongside the page actions. Keep its new-tab prefilled Create behavior; remove the copy button from the modal.
+
+Special Criteria dropdown options use 16px text with 24px line height and at least 48px item height; allow long labels to wrap and keep the options list scrollable.
+
+Announcement Create/Edit uses consistent 18px/28px semibold section titles and 16px/24px medium field/group labels (including Special Criteria, Platform, Follower Range and job details). Use 8px label/control gaps, 24px between groups/cards on desktop, and 16px groups/cards with 12px card padding on mobile. Keep status helper compact and compensation helper grouped with its heading.
+
+Special Criteria dropdown floats above the form without shifting layout and includes search within the dropdown. Filter options without clearing selected criteria; retain multi-selection and legacy values.
+
+Announcement status labels are ร่าง (Draft), เปิดรับสมัคร (Active), and ปิดรับสมัคร (Inactive) in forms, Detail and linked-posting lists. Preserve internal saved status values and legacy date-based recruitment behavior.
+
+Job Posting Detail summary uses four rows: title followed by status (edit stays top-right), Subtitle, copyable Brief / Job ID, then เปิดดูประกาศ / ผู้สมัคร counts. Use saved per-posting counts.
+
+Job Posting Detail ข้อมูลประกาศ section shows only รายละเอียดงานเพิ่มเติม; title/subtitle remain in the summary. Missing information displays a hyphen (-), including empty follower ranges and rich text. Preserve actual zero counts/amounts.
+
+Follower Range represents follower counts and uses followers as its unit, never คน. Empty ranges remain -.
+
+Job Posting Detail fields stack labels above values on every viewport with an 8px gap. Additional job details support safe clickable links, images, text colors, bold and italic. JOB20260901 includes a clearly labeled formatting example separate from saved content.
+
+Brief Detail announcement Table paginates filtered results at 10 postings per page with Previous/Next, page numbers and visible result range. Search/status changes reset to page 1; counts cover all matching results. Include additional clearly named mock announcements linked to NRI202609058 to demonstrate pagination.
+
+Brief Detail announcement heading/create action, filters, search, table and pagination sit directly on the page without an enclosing section card. Keep a single heading and the table’s own bounded scrolling surface.

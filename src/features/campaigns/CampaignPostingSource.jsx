@@ -92,6 +92,7 @@ export function CampaignPostingSource({
           </select>
         </Field>
       )}
+
       {(briefId || sourcePostings.length > 0) && (
         <div ref={selectRef} className="cw-posting-picker">
           <div className="flex items-center justify-between gap-3 mb-2">
@@ -128,7 +129,28 @@ export function CampaignPostingSource({
               )}
             </div>
             <div className="cw-picker-tabs">
-              <span className="py-2 text-muted">ทั้งหมด ({linkedPostings.length})</span>
+              <div className="flex items-center gap-3 py-2">
+                <label className="flex items-center gap-2 cursor-pointer font-medium hover:text-[#1a202c]">
+                  <input
+                    type="checkbox"
+                    className="m-0 h-4 w-4 shrink-0"
+                    style={{ accentColor: '#3286d3', marginTop: '2px' }}
+                    checked={visiblePostings.length > 0 && visiblePostings.every(p => selectedIds.has(p.id))}
+                    onChange={() => {
+                      const visibleIds = new Set(visiblePostings.map(p => p.id));
+                      const allVisibleSelected = visiblePostings.every(p => selectedIds.has(p.id));
+                      if (allVisibleSelected) {
+                        onSelect(sourcePostings.filter(p => !visibleIds.has(p.id)));
+                      } else {
+                        const newSelections = visiblePostings.filter(p => !selectedIds.has(p.id));
+                        onSelect([...sourcePostings, ...newSelections]);
+                      }
+                    }}
+                  />
+                  เลือกหน้านี้
+                </label>
+                <span className="text-muted border-l border-gray-300 pl-3">ทั้งหมด {linkedPostings.length} ประกาศ</span>
+              </div>
               {sourcePostings.length > 0 && (
                 <button type="button" className="cw-picker-clear" onClick={() => onSelect([])}>
                   ล้างที่เลือก
@@ -152,13 +174,12 @@ export function CampaignPostingSource({
                       checked={selectedIds.has(posting.id)}
                       onChange={() => handleToggle(posting)}
                     />
-                    <span className="cw-picker-avatar" aria-hidden="true">
-                      <BrandMark project={{ ...posting, tone: posting.tone || 'new' }} />
-                    </span>
+
                     <span className="cw-picker-copy">
                       <span className="cw-picker-title">{posting.name}</span>
                       <span className="cw-picker-meta">
-                        {posting.id} · {posting.brand || 'ยังไม่ระบุแบรนด์'}
+                        {posting.subtitle && <span className="block">{posting.subtitle}</span>}
+                        {posting.id} · นักรีวิวที่ลูกค้าเลือก: {posting.reviewers || Math.floor((posting.applicants || 0) * 0.4)} คน
                       </span>
                     </span>
                   </label>

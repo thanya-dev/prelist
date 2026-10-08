@@ -31,7 +31,9 @@ import { SEED_PROJECTS } from '../projects/projectSeeds.js';
 import { getCurrentUser } from '../../lib/currentUser.js';
 const STEPS = [
   ['Setting', 'ตั้งค่าแคมเปญ'],
-  ['รายละเอียดงานสำหรับนักรีวิว', 'ระบุข้อมูลสำหรับทำงาน'],
+  ['Campaign info', 'ข้อมูลหลักแคมเปญ'],
+  ['Brief', 'บรีฟทั้งหมด'],
+  ['Payment offer & Reward', 'แต้มและรางวัล'],
 ];
 const STATUS_OPTIONS = [
   ['draft', 'DRAFT', 'ร่างแคมเปญไว้ก่อน ยังไม่เปิดรับสมัคร (นักรีวิวจะยังไม่เห็นแคมเปญ)'],
@@ -189,6 +191,16 @@ export function CampaignForm() {
       return handleStep(1);
     }
     if (
+      !Number.isInteger(Number(values.target)) ||
+      Number(values.target) < 1 ||
+      values.targetPost === '' ||
+      !Number.isInteger(Number(values.targetPost)) ||
+      Number(values.targetPost) < 0
+    )
+      return setError(
+        'กรุณาระบุ Target influencer อย่างน้อย 1 คน และ Target post ตั้งแต่ 0 เป็นจำนวนเต็ม',
+      );
+    if (
       !values.sourcePostings?.length &&
       ((values.applicationStart &&
         values.applicationEnd &&
@@ -310,7 +322,7 @@ export function CampaignForm() {
         </div>
       ))}
       <button type="button" className="cw-link" onClick={() => onChange(key, [...values[key], ''])}>
-        <Plus /> เพิ่ม {title === 'Product option' ? 'product' : ''}
+        <Plus /> เพิ่ม
       </button>
     </section>
   );
@@ -530,6 +542,29 @@ export function CampaignForm() {
             </>
           )}
           {step === 1 && (
+            <section className="cw-panel">
+              <h3>Goals</h3>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <Field label="Target influencer" required hint="จำนวนนักรีวิวทั้งหมดในแคมเปญ">
+                  <input
+                    type="number"
+                    min="1"
+                    value={values.target ?? ''}
+                    onChange={(event) => onChange('target', event.target.value)}
+                  />
+                </Field>
+                <Field label="Target post" required hint="จำนวนโพสต์ทั้งหมดในแคมเปญ">
+                  <input
+                    type="number"
+                    min="0"
+                    value={values.targetPost ?? ''}
+                    onChange={(event) => onChange('targetPost', event.target.value)}
+                  />
+                </Field>
+              </div>
+            </section>
+          )}
+          {step === 1 && (
             <>
               {!values.sourcePostings?.length && (
                 <>
@@ -601,6 +636,7 @@ export function CampaignForm() {
               )}
               <fieldset className="cw-inherited-fields" disabled={isLocked('target')}>
                 <CreatorCriteriaFields
+                  showGoals={false}
                   values={values}
                   errors={{}}
                   onChange={onChange}
@@ -842,14 +878,8 @@ export function CampaignForm() {
             <ArrowLeft /> ย้อนกลับ
           </button>
         )}
-        <button className="cw-next" onClick={handleNext}>
-          {step === 1
-            ? isEditing
-              ? 'บันทึกการแก้ไข'
-              : 'สร้างแคมเปญ'
-            : values.sourcePostings?.length > 0
-              ? 'ตั้งค่าเพิ่มเติม'
-              : 'ต่อไป'}
+        <button className="cw-next" disabled>
+          ต่อไป
           <CaretRight />
         </button>
       </footer>

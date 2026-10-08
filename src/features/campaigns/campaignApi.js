@@ -28,7 +28,6 @@ export const DEFAULT_CAMPAIGN = {
   contentScope: 'Post / Reels',
   cover:
     'https://s3.ap-southeast-1.amazonaws.com/bdb-parse-file/public/project/profile/cbvpbV1FtT-1790576864553.jpg',
-  products: [''],
   shipping: 'none',
   brief: '',
   briefLink: '',

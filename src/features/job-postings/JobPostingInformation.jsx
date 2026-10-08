@@ -1,36 +1,26 @@
-import {
-  FileText,
-  Users,
-  CalendarBlank,
-  Gift,
-  LinkSimple,
-  Info,
-  Gear,
-} from '@phosphor-icons/react';
+import { Users, Gift, Info } from '@phosphor-icons/react';
+import { sanitizeAnnouncementHtml } from './announcementRichText.js';
 import { PlatformLogo } from '../../components/shared/PlatformLogo.jsx';
-import { CONTENT_SCOPE_GROUPS } from './CreatorCriteriaFields.jsx';
-import { DAY_MS, parseDay } from '../../utils/formatDate.js';
+import { getAnnouncementCriteria } from './announcementForm.js';
 
-const displayValue = (value) =>
-  value === undefined || value === null || value === '' ? 'ยังไม่ระบุ' : value;
-const formatDate = (value) => {
-  const day = parseDay(value);
-  return day === null
-    ? 'ยังไม่ระบุ'
-    : new Intl.DateTimeFormat('th-TH', {
-        day: 'numeric',
-        month: 'numeric',
-        year: 'numeric',
-        timeZone: 'UTC',
-      }).format(new Date(day * DAY_MS));
-};
-const formatRange = (min, max, unit) => `${displayValue(min)} – ${displayValue(max)} ${unit}`;
+const isMissing = (value) => value == null || (typeof value === 'string' && !value.trim());
+const displayValue = (value) => (isMissing(value) ? '-' : value);
+const formatNumber = (value) =>
+  isMissing(value)
+    ? '-'
+    : Number.isFinite(Number(value))
+      ? Number(value).toLocaleString('en-US')
+      : displayValue(value);
+const formatRange = (min, max, unit) =>
+  isMissing(min) && isMissing(max) ? '-' : `${formatNumber(min)} – ${formatNumber(max)} ${unit}`;
 
 function InformationField({ label, children }) {
   return (
-    <div className="posting-information-field min-w-0">
-      <dt className="mb-2 text-sm font-semibold text-[#64748b]">{label}</dt>
-      <dd className="m-0 whitespace-pre-wrap break-words text-base leading-relaxed">{children}</dd>
+    <div className="posting-information-field min-w-0 flex flex-col gap-2">
+      <dt className="text-base font-semibold text-[#64748b]">{label}</dt>
+      <dd className="m-0 flex-1 whitespace-pre-wrap break-words text-base leading-relaxed">
+        {children}
+      </dd>
     </div>
   );
 }
@@ -43,133 +33,109 @@ function InformationSection({ title, icon: Icon, children }) {
         </span>
         <h2>{title}</h2>
       </header>
-      <dl className="grid grid-cols-2 gap-6 max-[760px]:grid-cols-1 max-[760px]:gap-4">
-        {children}
-      </dl>
+      <dl className="grid grid-cols-1 gap-6 max-[760px]:gap-4">{children}</dl>
     </section>
   );
 }
 
 export function JobPostingInformation({ job }) {
-  const hasBudget = ['มีค่าจ้าง', 'ค่าจ้าง + สินค้า / Benefit'].includes(job.compensation);
-  const hasBenefit = ['สินค้า / Benefit เท่านั้น', 'ค่าจ้าง + สินค้า / Benefit'].includes(
-    job.compensation,
-  );
-  const contentScope =
-    job.contentScope ||
-    CONTENT_SCOPE_GROUPS.find((scope) =>
-      job.contentTypes?.some((type) => scope.types.includes(type)),
-    )?.label;
+  const shortBriefHtml = sanitizeAnnouncementHtml(job.shortBriefHtml || '');
+  const hasShortBriefHtml =
+    shortBriefHtml.includes('<img ') ||
+    Boolean(
+      shortBriefHtml
+        .replace(/<[^>]*>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .trim(),
+    );
   return (
-    <div className="posting-information mt-6 grid gap-6 max-[760px]:gap-4">
-      <InformationSection title="Setting" icon={Gear}>
-        <InformationField label="Campaign Type">
-          {displayValue(
-            {
-              normal: 'Normal',
-              confidential: 'Confidential campaign',
-              private: 'Private campaign',
-            }[job.campaignType],
-          )}
-        </InformationField>
-        {job.campaignType === 'confidential' && (
-          <>
-            <InformationField label="Confidential Title">
-              {displayValue(job.confidentialTitle)}
-            </InformationField>
-            <InformationField label="Confidential Subtitle">
-              {displayValue(job.confidentialSubtitle)}
-            </InformationField>
-          </>
-        )}
-        <InformationField label="Campaign Title">{displayValue(job.name)}</InformationField>
-        <InformationField label="Campaign Subtitle">{displayValue(job.subtitle)}</InformationField>
-        <InformationField label="Brand">{displayValue(job.brand)}</InformationField>
-        <InformationField label="Owner / Assign Buyer">{displayValue(job.owner)}</InformationField>
-      </InformationSection>
-
-      <InformationSection title="Creator Criteria" icon={Users}>
-        <InformationField label="Target influencer">
-          {displayValue(job.reviewers)} คน
-        </InformationField>
-        <InformationField label="Target post">{displayValue(job.targetPost)}</InformationField>
-        <div className="col-span-full">
-          <InformationField label="Target group">{displayValue(job.targetGroup)}</InformationField>
-        </div>
-        <InformationField label="เพศ">
-          {displayValue(job.genders?.join(', ') || job.gender)}
-        </InformationField>
-        <InformationField label="อายุ MIN / MAX">
-          {formatRange(job.ageMin, job.ageMax, 'ปี')}
-        </InformationField>
-        <InformationField label="ผู้ติดตาม MIN / MAX">
-          {formatRange(job.followerMin, job.followerMax, 'คน')}
-        </InformationField>
-        <InformationField label="Platform">
-          {job.platforms?.length ? (
-            <div className="flex flex-wrap gap-3">
-              {job.platforms.map((platform) => (
-                <span key={platform} className="inline-flex items-center gap-2">
-                  <PlatformLogo platform={platform} />
-                  {platform}
-                </span>
-              ))}
-            </div>
-          ) : (
-            'ยังไม่ระบุ'
-          )}
-        </InformationField>
-        <InformationField label="สโคปงาน">
-          {displayValue(contentScope)}
-          {job.contentTypes?.length > 0 && (
-            <p className="mt-2 text-sm text-[#64748b]">{job.contentTypes.join(', ')}</p>
-          )}
-        </InformationField>
-      </InformationSection>
-
-      <InformationSection title="Job Information" icon={CalendarBlank}>
-        <div className="col-span-full">
-          <InformationField label="Short Brief">{displayValue(job.shortBrief)}</InformationField>
-        </div>
-        <div className="col-span-full">
-          <InformationField label="Brief Link">
-            {/^https?:\/\//i.test(job.briefLink || '') ? (
-              <a className="text-[#3b28cc]" href={job.briefLink} target="_blank" rel="noreferrer">
-                {job.briefLink}
-              </a>
+    <div className="posting-information mt-6 grid md:grid-cols-2 gap-6 items-start">
+      <div className="flex flex-col gap-6">
+        <InformationSection title="คุณสมบัตินักรีวิว" icon={Users}>
+          <InformationField label="Special Criteria">
+            {displayValue(getAnnouncementCriteria(job).join(' · '))}
+          </InformationField>
+          <InformationField label="Platform">
+            {job.platforms?.length ? (
+              <div className="flex flex-wrap gap-3">
+                {job.platforms.map((platform) => (
+                  <span key={platform} className="inline-flex items-center gap-2">
+                    <PlatformLogo platform={platform} />
+                    {platform}
+                  </span>
+                ))}
+              </div>
             ) : (
-              displayValue(job.briefLink)
+              '-'
             )}
           </InformationField>
-        </div>
-        <div className="col-span-full">
-          <h3 className="text-base text-[#1e293b] font-medium">ระยะเวลาของแคมเปญ</h3>
-        </div>
-        <InformationField label="Working / Event Date (วันที่เริ่มทำแคมเปญ)">
-          {formatDate(job.startDate)} – {formatDate(job.endDate)}
-        </InformationField>
-        <InformationField label="Application Period (วันที่เปิดรับสมัคร)">
-          {formatDate(job.applyStartDate)} – {formatDate(job.deadline)}
-        </InformationField>
-      </InformationSection>
-
-      <InformationSection title="Compensation" icon={Gift}>
-        <InformationField label="Compensation Type">
-          {displayValue(job.compensation)}
-        </InformationField>
-        {hasBudget && (
-          <InformationField label="Budget Range">
-            {formatRange(job.budgetMin, job.budgetMax, 'THB')}
+          <InformationField label="Follower Range">
+            {formatRange(job.followerMin, job.followerMax, 'followers')}
           </InformationField>
-        )}
-        {hasBenefit && (
+        </InformationSection>
+        <InformationSection title="รายละเอียดค่าตอบแทน" icon={Gift}>
+          <InformationField label="ค่าจ้างรวมค่าเดินทาง (บาท)">
+            {formatNumber(job.wage ?? job.budgetMin)}
+          </InformationField>
+          <InformationField label="ค่าสินค้า (บาท)">
+            {formatNumber(job.productValue)}
+          </InformationField>
+        </InformationSection>
+      </div>
+      <div className="flex flex-col gap-6">
+        <InformationSection title="ข้อมูลประกาศ" icon={Info}>
           <div className="col-span-full">
-            <InformationField label="Product / Benefit Detail">
-              {displayValue(job.benefit)}
+            <InformationField label="รายละเอียดงาน">
+              {hasShortBriefHtml ? (
+                <div
+                  className="announcement-rich-text"
+                  dangerouslySetInnerHTML={{ __html: shortBriefHtml }}
+                />
+              ) : (
+                displayValue(job.shortBrief)
+              )}
             </InformationField>
+            {job.id === 'JOB20260901' && (
+              <div className="mt-6 border-0 border-t border-solid border-[#e2e8f0] pt-6 shadow-none">
+                <p className="m-0 mb-3 text-sm font-semibold text-[#64748b]">
+                  ตัวอย่างการจัดรูปแบบรายละเอียดงาน
+                </p>
+                <div className="announcement-rich-text text-base leading-relaxed">
+                  <p>
+                    <strong>รับนักรีวิว 5 คน</strong> ทำวิดีโอแนวตั้ง 45–60 วินาที คนละ 1 คลิป ลง
+                    TikTok หรือ Instagram Reels เล่าแนวทางวางแผนค่าใช้จ่ายและแนะนำ KTC Cash Card
+                    ตามข้อมูลที่แบรนด์อนุมัติ
+                  </p>
+                  <p>
+                    โพสต์คลิปพร้อม{' '}
+                    <span style={{ color: '#6024ed' }}>
+                      <strong>#KTCCashCard #โฆษณา</strong>
+                    </span>
+                  </p>
+                  <p>
+                    <em>ห้ามรับรองผลอนุมัติหรือแต่งประสบการณ์ใช้จริง</em> คงโพสต์อย่างน้อย 90
+                    วันและส่งสถิติหลังเผยแพร่ 7 วัน
+                  </p>
+                  <p>
+                    <a
+                      href="https://www.buddyreview.co/campaign/EMr3CC9K56/preview"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      ดูตัวอย่างหน้าประกาศ ↗
+                    </a>
+                  </p>
+                  <img
+                    src="https://manage.buddyreview.co/_next/static/media/logo-m-color.94a8241e.svg"
+                    alt="ตัวอย่างรูปภาพ Buddy Review"
+                    className="w-48"
+                  />
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </InformationSection>
+        </InformationSection>
+      </div>
     </div>
   );
 }

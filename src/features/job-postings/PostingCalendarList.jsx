@@ -11,19 +11,26 @@ import {
   NotePencil,
   Plus,
   Users,
+  CopySimple,
+  Check,
 } from '@phosphor-icons/react';
+import { useCopy } from '../../hooks/useCopy.js';
 import { SEED_JOB_POSTINGS } from './jobPostingSeeds.js';
 import { getJobPostings } from './jobPostingApi.js';
 import { getRecruitmentPeriod } from './recruitmentStatuses.js';
-export function PostingCalendarList({ briefId }) {
+const POSTINGS_PAGE_SIZE = 10;
+
+export function PostingCalendarList({ briefId, tableOnly = false, onCreate }) {
   const navigate = useNavigate();
-  const [view, setView] = useState('calendar');
+  const { copiedId, copy } = useCopy();
+  const [view, setView] = useState(tableOnly ? 'table' : 'calendar');
   const [query, setQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [status, setStatus] = useState('ทั้งหมด');
   const todayString = getBangkokToday();
   const today = parseDay(todayString);
   const [month, setMonth] = useState(() => new Date(today * DAY_MS));
-  const statuses = ['ทั้งหมด', 'แบบร่าง', 'รอเปิดรับ', 'เปิดรับสมัคร', 'ปิดรับสมัคร'];
+  const statuses = ['ทั้งหมด', 'ร่าง', 'เปิดรับสมัคร', 'ปิดรับสมัคร'];
   const jobs = getJobPostings()
     .filter((job) => !briefId || job.brief === briefId)
     .map((saved) => {
@@ -51,6 +58,10 @@ export function PostingCalendarList({ briefId }) {
     ]),
   );
   const filtered = searchMatchedJobs.filter((job) => status === 'ทั้งหมด' || job.state === status);
+  const totalPages = Math.ceil(filtered.length / POSTINGS_PAGE_SIZE);
+  const activePage = Math.min(currentPage, Math.max(1, totalPages));
+  const pageOffset = (activePage - 1) * POSTINGS_PAGE_SIZE;
+  const paginatedJobs = filtered.slice(pageOffset, pageOffset + POSTINGS_PAGE_SIZE);
   const drafts = filtered.filter((job) => !job.validPeriod);
   const dated = filtered.filter((job) => job.validPeriod);
   const first = Date.UTC(month.getUTCFullYear(), month.getUTCMonth(), 1) / DAY_MS;
@@ -68,8 +79,7 @@ export function PostingCalendarList({ briefId }) {
     job.validPeriod ? `${formatDay(job.start)} – ${formatDay(job.end)}` : 'ยังไม่กำหนดช่วงรับสมัคร';
   const tone = (job) =>
     ({
-      แบบร่าง: 'draft',
-      รอเปิดรับ: 'scheduled',
+      ร่าง: 'draft',
       เปิดรับสมัคร: 'open',
       ปิดรับสมัคร: 'closed',
     })[job.state];
@@ -77,6 +87,7 @@ export function PostingCalendarList({ briefId }) {
   const openJob = (job) => navigate(`/job-postings/${job.id}`);
   const clear = () => {
     setQuery('');
+    setCurrentPage(1);
     setStatus('ทั้งหมด');
   };
   const changeMonth = (offset) =>
@@ -91,67 +102,81 @@ export function PostingCalendarList({ briefId }) {
         <button
           className="primary"
           onClick={() =>
-            navigate(
-              briefId
-                ? `/job-postings/create?briefId=${encodeURIComponent(briefId)}`
-                : '/job-postings/create',
-            )
+            onCreate
+              ? onCreate()
+              : navigate(
+                  briefId
+                    ? `/job-postings/create?briefId=${encodeURIComponent(briefId)}`
+                    : '/job-postings/create',
+                )
           }
         >
           <Plus /> สร้างประกาศ
         </button>
       </div>
-      <div className="posting-controls">
-        <div className="posting-view-toggle">
-          {[
-            ['calendar', 'ปฏิทิน', CalendarBlank],
-            ['table', 'ตาราง', List],
-          ].map(([value, label, Icon]) => (
+      <div className="posting-controls" style={{ flexWrap: 'wrap', gap: '16px' }}>
+        <div className="posting-status-filters" style={{ margin: 0, flex: 1 }}>
+          {statuses.map((value) => (
             <button
               key={value}
-              aria-pressed={view === value}
-              className={view === value ? 'active' : ''}
-              onClick={() => setView(value)}
+              aria-pressed={status === value}
+              className={status === value ? 'active' : ''}
+              onClick={() => {
+                setStatus(value);
+                setCurrentPage(1);
+              }}
             >
-              <Icon />
-              {label}
+              <span
+                className={`posting-badge ${
+                  value === 'ทั้งหมด'
+                    ? 'all'
+                    : tone({
+                        state: value,
+                      })
+                }`}
+              >
+                {value}
+              </span>
+              <span>({statusCounts[value]})</span>
             </button>
           ))}
         </div>
-        <label className="search">
-          <MagnifyingGlass />
-          <input
-            aria-label="ค้นหาชื่อประกาศหรือชื่อแคมเปญ"
-            placeholder="ค้นหาชื่อประกาศ / ชื่อแคมเปญ"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        </label>
-      </div>
-      <div className="posting-status-filters">
-        {statuses.map((value) => (
-          <button
-            key={value}
-            aria-pressed={status === value}
-            className={status === value ? 'active' : ''}
-            onClick={() => setStatus(value)}
-          >
-            <span
-              aria-hidden="true"
-              className={`posting-status-dot ${
-                value === 'ทั้งหมด'
-                  ? 'all'
-                  : tone({
-                      state: value,
-                    })
-              }`}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          {!tableOnly && (
+            <div className="posting-view-toggle">
+              {[
+                ['calendar', 'ปฏิทิน', CalendarBlank],
+                ['table', 'ตาราง', List],
+              ].map(([value, label, Icon]) => (
+                <button
+                  key={value}
+                  aria-pressed={view === value}
+                  className={view === value ? 'active' : ''}
+                  onClick={() => setView(value)}
+                >
+                  <Icon />
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+          <label className="search" style={{ margin: 0 }}>
+            <MagnifyingGlass />
+            <input
+              aria-label="ค้นหาชื่อประกาศหรือชื่อแคมเปญ"
+              placeholder="ค้นหาชื่อประกาศ / ชื่อแคมเปญ"
+              value={query}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setCurrentPage(1);
+              }}
             />
-            {value} ({statusCounts[value]})
-          </button>
-        ))}
+          </label>
+        </div>
       </div>
+
       {!filtered.length ? (
-        <div className="empty-state posting-search-empty">
+        <div className="empty-state posting-search-empty mt-6">
           <MagnifyingGlass size={36} />
           <h3>ไม่พบประกาศที่ตรงกับการค้นหา</h3>
           <button className="secondary-button" onClick={clear}>
@@ -159,45 +184,154 @@ export function PostingCalendarList({ briefId }) {
           </button>
         </div>
       ) : view === 'table' ? (
-        <div className="posting-table-wrap">
-          <table className="posting-table">
-            <thead>
-              <tr>
-                <th>ประกาศ / แคมเปญ</th>
-                <th>ช่วงรับสมัคร</th>
-                <th>สถานะ</th>
-                <th>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Eye size={18} /> เปิดดูประกาศ
-                  </div>
-                </th>
-                <th>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Users size={18} /> ผู้สมัคร
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((job) => (
-                <tr key={job.id}>
-                  <td>
-                    <button onClick={() => openJob(job)}>{job.name}</button>
-                    <small>{job.campaign}</small>
-                  </td>
-                  <td>{period(job)}</td>
-                  <td>{badge(job)}</td>
-                  <td>
-                    {job.viewerCount == null
-                      ? '0 คน'
-                      : `${job.viewerCount.toLocaleString('th-TH')} คน`}
-                  </td>
-                  <td>{(job.applicants || 0).toLocaleString('th-TH')} คน</td>
+        <>
+          <div className="posting-table-wrap mt-6">
+            <table className="posting-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '60px' }}>No.</th>
+                  <th>ประกาศ</th>
+                  <th>สถานะ</th>
+                  <th>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Eye size={18} /> เปิดดูประกาศ
+                    </div>
+                  </th>
+                  <th>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Users size={18} /> ผู้สมัคร
+                    </div>
+                  </th>
+                  <th>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {paginatedJobs.map((job, index) => {
+                  const isActive =
+                    job.status !== 'Draft' &&
+                    job.status !== 'แบบร่าง' &&
+                    job.announcementStatus !== 'inactive';
+                  return (
+                    <tr key={job.id}>
+                      <td>{pageOffset + index + 1}</td>
+                      <td>
+                        <button
+                          onClick={() => openJob(job)}
+                          style={{ textAlign: 'left', fontWeight: 'bold', color: 'var(--color-primary)', padding: 0, margin: 0 }}
+                        >
+                          {job.name}
+                        </button>
+                        <small style={{ display: 'block', color: '#64748b', marginBottom: '8px' }}>
+                          {job.subtitle || job.brand}
+                        </small>
+                        <button
+                          type="button"
+                          className="id-pill inline-flex items-center gap-2 hover:bg-slate-50"
+                          onClick={() => {
+                            copy(job.id, `job-id-${job.id}`, `คัดลอก Job ID: ${job.id} สำเร็จ`);
+                          }}
+                        >
+                          <strong>Job ID:</strong> {job.id}{' '}
+                          {copiedId === `job-id-${job.id}` ? (
+                            <Check size={12} weight="bold" className="text-emerald-500" />
+                          ) : (
+                            <CopySimple size={12} weight="bold" />
+                          )}
+                        </button>
+                      </td>
+                      <td>{badge(job)}</td>
+                      <td>
+                        {job.viewerCount == null
+                          ? '0 คน'
+                          : `${job.viewerCount.toLocaleString('th-TH')} คน`}
+                      </td>
+                      <td>{(job.applicants || 0).toLocaleString('th-TH')} คน</td>
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'stretch' }}>
+                          <div
+                            className="relative group inline-block w-full"
+                            style={{ cursor: !isActive ? 'not-allowed' : 'pointer' }}
+                          >
+                            <button
+                              className="flex items-center justify-center gap-1.5 w-full border border-slate-300 text-[#64748b] hover:border-[#3b82f6] hover:text-[#3b82f6] hover:bg-slate-50 rounded-md transition-colors"
+                              style={{
+                                padding: '4px 10px',
+                                fontSize: '12px',
+                                ...(!isActive ? { opacity: 0.5, pointerEvents: 'none' } : {}),
+                              }}
+                              disabled={!isActive}
+                              onClick={() => {
+                                if (isActive) {
+                                  const link = `https://buddyreview.co/apply/${job.id}`;
+                                  copy(link, `link-${job.id}`, `คัดลอกลิ้งสมัคร ${link} เรียบร้อย`);
+                                }
+                              }}
+                            >
+                              {copiedId === `link-${job.id}` ? (
+                                <Check size={16} className="text-emerald-500" />
+                              ) : (
+                                <CopySimple size={16} />
+                              )}{' '}
+                              คัดลอกลิงก์สมัคร
+                            </button>
+                            {!isActive && (
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-max bg-slate-800 text-white text-xs rounded py-1.5 px-2.5 z-10 shadow-lg whitespace-nowrap">
+                                ต้องเปิดรับสมัครแคมเปญก่อน
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+                              </div>
+                            )}
+                          </div>
+                          <button
+                            className="flex items-center justify-center w-full border border-[#3b82f6] text-[#3b82f6] hover:bg-[#eff6ff] rounded-md font-medium transition-colors"
+                            style={{ fontSize: '12px', padding: '4px 10px' }}
+                            onClick={() => openJob(job)}
+                          >
+                            ดูรายละเอียดงาน ↗
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+            <p className="m-0 text-sm text-[#64748b]" role="status">
+              แสดง {pageOffset + 1}–{Math.min(pageOffset + POSTINGS_PAGE_SIZE, filtered.length)} จาก{' '}
+              {filtered.length} ประกาศ
+            </p>
+            {totalPages > 1 && (
+              <nav className="pagination flex flex-wrap" aria-label="หน้ารายการประกาศ">
+                <button
+                  aria-label="หน้าก่อนหน้า"
+                  disabled={activePage === 1}
+                  onClick={() => setCurrentPage(activePage - 1)}
+                >
+                  ‹
+                </button>
+                {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                  <button
+                    key={page}
+                    aria-label={`หน้า ${page}`}
+                    aria-current={activePage === page ? 'page' : undefined}
+                    className={activePage === page ? 'selected' : ''}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  aria-label="หน้าถัดไป"
+                  disabled={activePage === totalPages}
+                  onClick={() => setCurrentPage(activePage + 1)}
+                >
+                  ›
+                </button>
+              </nav>
+            )}
+          </div>
+        </>
       ) : (
         <>
           {drafts.length > 0 && (
@@ -205,10 +339,10 @@ export function PostingCalendarList({ briefId }) {
               className="posting-drafts"
               onClick={() => {
                 setView('table');
-                setStatus('แบบร่าง');
+                setStatus('ทั้งหมด');
               }}
             >
-              <NotePencil /> แบบร่าง {drafts.length} รายการ <CaretRight />
+              <NotePencil /> ประกาศไม่ระบุวัน {drafts.length} รายการ <CaretRight />
             </button>
           )}
           <div className="posting-month-header">
@@ -312,7 +446,7 @@ export function PostingCalendarList({ briefId }) {
                             onClick={() => openJob(job)}
                             title={`${job.name} · ${job.campaign} · ${period(job)} · ${job.state} · เปิดดูประกาศ ${job.viewerCount == null ? '0 คน' : `${job.viewerCount} คน`} · ผู้สมัคร ${job.applicants || 0} คน`}
                           >
-                            <strong>{job.name}</strong>
+                            <strong style={{ color: 'var(--color-primary)' }}>{job.name}</strong>
                             <small>{job.campaign}</small>
                             <small>{period(job)}</small>
                             <div className="posting-event-footer">

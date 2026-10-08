@@ -4,9 +4,13 @@ import { sanitizeAnnouncementHtml } from './announcementRichText.js';
 export function AnnouncementRichTextEditor({ html, text, onChange }) {
   const editorRef = useRef(null);
   useEffect(() => {
-    if (html) editorRef.current.innerHTML = sanitizeAnnouncementHtml(html);
-    else editorRef.current.innerText = text || '';
-  }, []);
+    const sanitized = html ? sanitizeAnnouncementHtml(html) : '';
+    if (sanitized && editorRef.current.innerHTML !== sanitized) {
+      editorRef.current.innerHTML = sanitized;
+    } else if (!sanitized && text && editorRef.current.innerText !== text) {
+      editorRef.current.innerText = text;
+    }
+  }, [html, text]);
   const handleInput = () => {
     onChange({
       html: sanitizeAnnouncementHtml(editorRef.current.innerHTML),

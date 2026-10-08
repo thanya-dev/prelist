@@ -50,9 +50,6 @@ export function JobPostingInformation({ job }) {
     <div className="posting-information mt-6 grid md:grid-cols-2 gap-6 items-start">
       <div className="flex flex-col gap-6">
         <InformationSection title="คุณสมบัตินักรีวิว" icon={Users}>
-          <InformationField label="Special Criteria">
-            {displayValue(getAnnouncementCriteria(job).join(' · '))}
-          </InformationField>
           <InformationField label="Platform">
             {job.platforms?.length ? (
               <div className="flex flex-wrap gap-3">
@@ -69,6 +66,9 @@ export function JobPostingInformation({ job }) {
           </InformationField>
           <InformationField label="Follower Range">
             {formatRange(job.followerMin, job.followerMax, 'followers')}
+          </InformationField>
+          <InformationField label="Special Criteria">
+            {displayValue(getAnnouncementCriteria(job).join(' · '))}
           </InformationField>
         </InformationSection>
         <InformationSection title="รายละเอียดค่าตอบแทน" icon={Gift}>
@@ -93,44 +93,6 @@ export function JobPostingInformation({ job }) {
                 displayValue(job.shortBrief)
               )}
             </InformationField>
-            {job.id === 'JOB20260901' && (
-              <div className="mt-6 border-0 border-t border-solid border-[#e2e8f0] pt-6 shadow-none">
-                <p className="m-0 mb-3 text-sm font-semibold text-[#64748b]">
-                  ตัวอย่างการจัดรูปแบบรายละเอียดงาน
-                </p>
-                <div className="announcement-rich-text text-base leading-6">
-                  <p>
-                    <strong>รับนักรีวิว 5 คน</strong> ทำวิดีโอแนวตั้ง 45–60 วินาที คนละ 1 คลิป ลง
-                    TikTok หรือ Instagram Reels เล่าแนวทางวางแผนค่าใช้จ่ายและแนะนำ KTC Cash Card
-                    ตามข้อมูลที่แบรนด์อนุมัติ
-                  </p>
-                  <p>
-                    โพสต์คลิปพร้อม{' '}
-                    <span style={{ color: '#6024ed' }}>
-                      <strong>#KTCCashCard #โฆษณา</strong>
-                    </span>
-                  </p>
-                  <p>
-                    <em>ห้ามรับรองผลอนุมัติหรือแต่งประสบการณ์ใช้จริง</em> คงโพสต์อย่างน้อย 90
-                    วันและส่งสถิติหลังเผยแพร่ 7 วัน
-                  </p>
-                  <p>
-                    <a
-                      href="https://www.buddyreview.co/campaign/EMr3CC9K56/preview"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      ดูตัวอย่างหน้าประกาศ ↗
-                    </a>
-                  </p>
-                  <img
-                    src="https://manage.buddyreview.co/_next/static/media/logo-m-color.94a8241e.svg"
-                    alt="ตัวอย่างรูปภาพ Buddy Review"
-                    className="w-48"
-                  />
-                </div>
-              </div>
-            )}
           </div>
         </InformationSection>
       </div>

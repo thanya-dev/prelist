@@ -15,6 +15,9 @@ import {
   ANNOUNCEMENT_PLATFORMS,
   SPECIAL_CRITERIA_OPTIONS,
   getAnnouncementCriteria,
+  generateSubtitle,
+  generateTitle,
+  generateShortBrief,
 } from './announcementForm.js';
 
 export function JobPostingForm({ postingId: id, briefId, copyFromId, onClose, onSave }) {
@@ -30,29 +33,152 @@ export function JobPostingForm({ postingId: id, briefId, copyFromId, onClose, on
     : parentBriefId
       ? `/briefs/${parentBriefId}`
       : '/briefs';
-  const [values, setValues] = useState(() => ({
-    name: job.name ? `${job.name}${!id ? ' (สำเนา)' : ''}` : parentBrief?.name || '',
-    subtitle: job.subtitle || '',
-    owner: job.owner || getCurrentUser().email,
-    announcementStatus:
-      job.status === 'Draft' || job.status === 'แบบร่าง'
-        ? 'draft'
-        : job.announcementStatus || 'active',
-    specialCriteriaOptions: getAnnouncementCriteria(job),
-    platforms: job.platforms || [],
-    followerMin: job.followerMin ?? '',
-    followerMax: job.followerMax ?? '',
-    shortBrief: job.shortBrief || '',
-    shortBriefHtml: job.shortBriefHtml || '',
-    wage: job.wage ?? (job.budgetMin !== undefined ? job.budgetMin : ''),
-    productValue: job.productValue ?? '',
-    benefit: job.benefit || '',
-  }));
+  const [values, setValues] = useState(() => {
+    const name = job.name
+      ? `${job.name}${!id ? ' (สำเนา)' : ''}`
+      : generateTitle(job.platforms || [], job.followerMin ?? '', job.followerMax ?? '');
+    const subtitle = job.subtitle || generateSubtitle(getAnnouncementCriteria(job));
+    const wage = job.wage ?? (job.budgetMin !== undefined ? job.budgetMin : '');
+
+    let shortBriefHtml = job.shortBriefHtml || '';
+    let shortBriefText = job.shortBrief || '';
+
+    if (!shortBriefHtml && !shortBriefText) {
+      const generated = generateShortBrief(name, subtitle, wage);
+      shortBriefHtml = generated.html;
+      shortBriefText = generated.text;
+    }
+
+    return {
+      name,
+      subtitle,
+      owner: job.owner || getCurrentUser().email,
+      announcementStatus:
+        job.status === 'Draft' || job.status === 'แบบร่าง'
+          ? 'draft'
+          : job.announcementStatus || 'active',
+      specialCriteriaOptions: getAnnouncementCriteria(job),
+      platforms: job.platforms || [],
+      followerMin: job.followerMin ?? '',
+      followerMax: job.followerMax ?? '',
+      shortBrief: shortBriefText,
+      shortBriefHtml: shortBriefHtml,
+      wage,
+      productValue: job.productValue ?? '',
+      benefit: job.benefit || '',
+    };
+  });
   const formRef = useRef(null);
   const [errors, setErrors] = useState({});
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const handleChange = (key, value) => {
-    setValues((current) => ({ ...current, [key]: value }));
+    setValues((current) => {
+      const nextValues = { ...current, [key]: value };
+
+      let titleChanged = key === 'name';
+      let subtitleChanged = key === 'subtitle';
+      let wageChanged = key === 'wage';
+
+      if (['platforms', 'followerMin', 'followerMax', 'specialCriteriaOptions'].includes(key)) {
+        const oldSubtitleGenerated = generateSubtitle(current.specialCriteriaOptions);
+        if (
+          !current.subtitle ||
+          current.subtitle === oldSubtitleGenerated ||
+          current.subtitle === job.subtitle
+        ) {
+          nextValues.subtitle = generateSubtitle(nextValues.specialCriteriaOptions);
+          subtitleChanged = true;
+        }
+
+        const oldTitleGenerated = generateTitle(
+          current.platforms,
+          current.followerMin,
+          current.followerMax,
+        );
+        if (
+          !current.name ||
+          current.name === oldTitleGenerated ||
+          current.name === job.name ||
+          current.name === 'ตามหานักรีวิว'
+        ) {
+          nextValues.name = generateTitle(
+            nextValues.platforms,
+            nextValues.followerMin,
+            nextValues.followerMax,
+          );
+          titleChanged = true;
+        }
+      }
+
+      if (titleChanged || subtitleChanged || wageChanged) {
+        const oldShortBriefGenerated = generateShortBrief(
+          current.name,
+          current.subtitle,
+          current.wage,
+        );
+
+        const isUntouched =
+          !current.shortBriefHtml ||
+          current.shortBriefHtml === oldShortBriefGenerated.html ||
+          current.shortBriefHtml === job.shortBriefHtml ||
+          !current.shortBrief ||
+          current.shortBrief === oldShortBriefGenerated.text ||
+          current.shortBrief === job.shortBrief;
+
+        if (isUntouched) {
+          const nextBrief = generateShortBrief(
+            nextValues.name,
+            nextValues.subtitle,
+            nextValues.wage,
+          );
+
+          // If it was untouched but it came from a realistic seed, preserve the SOW part
+          if (
+            current.shortBriefHtml === job.shortBriefHtml &&
+            current.shortBriefHtml !== oldShortBriefGenerated.html
+          ) {
+            const sowRegexHtml = /SOW: (.*?)</;
+            const sowMatchHtml = current.shortBriefHtml.match(sowRegexHtml);
+            if (sowMatchHtml) {
+              nextBrief.html = nextBrief.html.replace(/SOW: (.*?)</, `SOW: ${sowMatchHtml[1]}<`);
+            }
+            const sowRegexText = /SOW: (.*?)\n/;
+            const sowMatchText = current.shortBrief.match(sowRegexText);
+            if (sowMatchText) {
+              nextBrief.text = nextBrief.text.replace(/SOW: (.*?)\n/, `SOW: ${sowMatchText[1]}\n`);
+            }
+          }
+
+          nextValues.shortBrief = nextBrief.text;
+          nextValues.shortBriefHtml = nextBrief.html;
+        } else if (wageChanged) {
+          // If it was customized, but they just changed the wage, try to update ONLY the BG line
+          const formattedWage =
+            nextValues.wage !== '' && nextValues.wage !== undefined && nextValues.wage !== null
+              ? Number.isFinite(Number(nextValues.wage))
+                ? Number(nextValues.wage).toLocaleString('en-US')
+                : nextValues.wage
+              : '';
+
+          const bgRegexText = /BG: [0-9,]* บาท รวมค่าเดินทาง/;
+          if (bgRegexText.test(current.shortBrief)) {
+            nextValues.shortBrief = current.shortBrief.replace(
+              bgRegexText,
+              `BG: ${formattedWage} บาท รวมค่าเดินทาง`,
+            );
+          }
+          const bgRegexHtml = /BG: [0-9,]* บาท รวมค่าเดินทาง/;
+          if (bgRegexHtml.test(current.shortBriefHtml)) {
+            nextValues.shortBriefHtml = current.shortBriefHtml.replace(
+              bgRegexHtml,
+              `BG: ${formattedWage} บาท รวมค่าเดินทาง`,
+            );
+          }
+        }
+      }
+
+      return nextValues;
+    });
     setErrors((current) => ({ ...current, [key]: '' }));
   };
   const canSave = Object.keys(validateAnnouncement(values)).length === 0;

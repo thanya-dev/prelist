@@ -1,9 +1,14 @@
-import {
+const fs = require('fs');
+const {
   generateTitle,
   generateSubtitle,
   generateShortBrief,
-  getAnnouncementCriteria,
-} from './announcementForm.js';
+} = require('./src/features/job-postings/announcementForm.js');
+
+let content = fs.readFileSync('./src/features/job-postings/jobPostingSeeds.js', 'utf8');
+
+// We will modify the file to import the generators and map the array.
+const newContent = `import { generateTitle, generateSubtitle, generateShortBrief, getAnnouncementCriteria } from './announcementForm.js';
 
 const RAW_POSTINGS = [
   {
@@ -100,6 +105,7 @@ const RAW_POSTINGS = [
     followerMin: 5000,
     followerMax: 20000,
     wage: 2500,
+    specialCriteriaOptions: ['คนวัยทำงาน'],
   },
   {
     id: 'JOB20261003',
@@ -151,6 +157,7 @@ const RAW_POSTINGS = [
     followerMin: 100000,
     followerMax: 1000000,
     wage: 15000,
+    specialCriteriaOptions: ['พนักงานราชการ / ข้าราชการ'],
   },
   {
     id: 'JOB20261101',
@@ -172,43 +179,16 @@ const RAW_POSTINGS = [
 
 export const SEED_JOB_POSTINGS = RAW_POSTINGS.map((job) => {
   const criteria = getAnnouncementCriteria(job);
-  const generatedName = generateTitle(
-    job.platforms || [],
-    job.followerMin ?? '',
-    job.followerMax ?? '',
-  );
+  const generatedName = generateTitle(job.platforms || [], job.followerMin ?? '', job.followerMax ?? '');
   const generatedSubtitle = generateSubtitle(criteria);
   const generatedBrief = generateShortBrief(generatedName, generatedSubtitle, job.wage ?? '');
-
-  let text = generatedBrief.text;
-  let html = generatedBrief.html;
-
-  if (job.platforms?.includes('TikTok') || job.platforms?.includes('YouTube')) {
-    text = text.replace(
-      'Create VDO / Create Photo Album xxxx',
-      'Create VDO ความยาว 45-60 วินาที จำนวน 1 คลิป',
-    );
-    html = html.replace(
-      'Create VDO / Create Photo Album xxxx',
-      'Create VDO ความยาว 45-60 วินาที จำนวน 1 คลิป',
-    );
-  } else {
-    text = text.replace(
-      'Create VDO / Create Photo Album xxxx',
-      'Create Photo Album 4-6 ภาพ จำนวน 1 โพสต์',
-    );
-    html = html.replace(
-      'Create VDO / Create Photo Album xxxx',
-      'Create Photo Album 4-6 ภาพ จำนวน 1 โพสต์',
-    );
-  }
-
+  
   return {
     ...job,
     name: generatedName,
     subtitle: generatedSubtitle,
-    shortBrief: text,
-    shortBriefHtml: html,
+    shortBrief: generatedBrief.text,
+    shortBriefHtml: generatedBrief.html,
   };
 });
 
@@ -222,36 +202,13 @@ SEED_JOB_POSTINGS.push(
     const followerMax = 100000;
     const wage = 3500;
     const specialCriteriaOptions = [['Lifestyle'], ['Travel'], ['Foodie']][index % 3];
-
+    
     const generatedName = generateTitle(platforms, followerMin, followerMax);
     const generatedSubtitle = generateSubtitle(specialCriteriaOptions);
     const generatedBrief = generateShortBrief(generatedName, generatedSubtitle, wage);
 
-    let text = generatedBrief.text;
-    let html = generatedBrief.html;
-
-    if (platforms.includes('TikTok') || platforms.includes('YouTube')) {
-      text = text.replace(
-        'Create VDO / Create Photo Album xxxx',
-        'Create VDO ความยาว 45-60 วินาที จำนวน 1 คลิป',
-      );
-      html = html.replace(
-        'Create VDO / Create Photo Album xxxx',
-        'Create VDO ความยาว 45-60 วินาที จำนวน 1 คลิป',
-      );
-    } else {
-      text = text.replace(
-        'Create VDO / Create Photo Album xxxx',
-        'Create Photo Album 4-6 ภาพ จำนวน 1 โพสต์',
-      );
-      html = html.replace(
-        'Create VDO / Create Photo Album xxxx',
-        'Create Photo Album 4-6 ภาพ จำนวน 1 โพสต์',
-      );
-    }
-
     return {
-      id: `JOB202610${String(101 + index)}`,
+      id: \`JOB202610\${String(101 + index)}\`,
       brief: 'NRI202609058',
       name: generatedName,
       subtitle: generatedSubtitle,
@@ -270,8 +227,11 @@ SEED_JOB_POSTINGS.push(
       wage,
       productValue: 0,
       specialCriteriaOptions,
-      shortBrief: text,
-      shortBriefHtml: html,
+      shortBrief: generatedBrief.text,
+      shortBriefHtml: generatedBrief.html,
     };
-  }),
+  })
 );
+`;
+
+fs.writeFileSync('./src/features/job-postings/jobPostingSeeds.js', newContent);

@@ -1,6 +1,5 @@
 import { JobPostingFormModal } from '../features/job-postings/JobPostingFormModal.jsx';
-import { useState, useEffect } from 'react';
-import { Skeleton } from '../components/ui/Skeleton.jsx';
+import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CaretRight, ListMagnifyingGlass, MagnifyingGlass, Plus } from '@phosphor-icons/react';
 import { BriefFormModal } from '../features/briefs/BriefFormModal.jsx';
@@ -53,12 +52,6 @@ export function BriefListPage() {
     validCurrentPage * pageSize,
   );
 
-  const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {
-    const t = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(t);
-  }, []);
-
   return (
     <div className="app-shell">
       {isCreatePostingOpen && (
@@ -103,27 +96,7 @@ export function BriefListPage() {
           </button>
         </div>
         <section className="project-list grid gap-5" aria-label="รายการ Brief">
-          {isLoading ? (
-            Array.from({ length: 3 }).map((_, i) => (
-              <article
-                key={`skeleton-${i}`}
-                className="project-card brief-card gap-6 pt-5 pr-8 pb-5 pl-5 max-[760px]:gap-4 max-[760px]:p-3"
-              >
-                <div className="flex flex-1 items-start gap-4">
-                  <Skeleton className="w-24 h-24 max-[760px]:w-16 max-[760px]:h-16 shrink-0" />
-                  <div className="flex-1 min-w-0" style={{ paddingTop: '8px' }}>
-                    <Skeleton className="w-1/3 h-6 mb-3" />
-                    <Skeleton className="w-32 h-7 rounded-full mb-4" />
-                    <div className="flex gap-2">
-                      <Skeleton className="w-20 h-6" />
-                      <Skeleton className="w-20 h-6" />
-                      <Skeleton className="w-20 h-6" />
-                    </div>
-                  </div>
-                </div>
-              </article>
-            ))
-          ) : paginatedBriefs.length ? (
+          {paginatedBriefs.length ? (
             paginatedBriefs.map((brief) => {
               const linkedPostings = postings.filter((posting) => posting.brief === brief.id);
               const statusCounts = linkedPostings.reduce((counts, posting) => {

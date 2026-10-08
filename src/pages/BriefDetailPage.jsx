@@ -1,7 +1,6 @@
 import { JobPostingFormModal } from '../features/job-postings/JobPostingFormModal.jsx';
 import { BriefFormModal } from '../features/briefs/BriefFormModal.jsx';
-import { useState, useEffect } from 'react';
-import { Skeleton } from '../components/ui/Skeleton.jsx';
+import { useState } from 'react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { ArrowLeft, CaretRight } from '@phosphor-icons/react';
 import { getBriefById } from '../features/briefs/briefApi.js';
@@ -33,11 +32,6 @@ export function BriefDetailPage({ onBack }) {
       setSearchParams(next, { replace: true });
     }
   };
-  const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {
-    const t = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(t);
-  }, []);
 
   return (
     <div className="app-shell">
@@ -63,59 +57,27 @@ export function BriefDetailPage({ onBack }) {
       )}
       <Sidebar />
       <main className="list-main lifecycle-detail brief-detail-page">
-        {isLoading ? (
-          <div className="space-y-6 mt-4">
-            <div className="flex gap-2">
-              <Skeleton className="w-24 h-6" />
-              <Skeleton className="w-32 h-6" />
-            </div>
-            <Skeleton className="w-20 h-8 mt-2" />
-            <article className="project-card brief-card p-6">
-              <div className="flex gap-4">
-                <Skeleton className="w-24 h-24 shrink-0" />
-                <div className="flex-1 space-y-3">
-                  <Skeleton className="w-1/4 h-6" />
-                  <Skeleton className="w-1/2 h-8 rounded-full" />
-                  <Skeleton className="w-full h-8" />
-                </div>
-              </div>
-            </article>
-            <div className="project-card p-6 space-y-4">
-              <div className="flex justify-between">
-                <Skeleton className="w-1/3 h-8" />
-                <Skeleton className="w-24 h-8" />
-              </div>
-              <Skeleton className="w-full h-12" />
-              <Skeleton className="w-full h-12" />
-              <Skeleton className="w-full h-12" />
-            </div>
+        <>
+          <div className="breadcrumbs">
+            ประกาศหานักรีวิว <CaretRight />{' '}
+            <Link to="/briefs" className="hover:text-[#5135ff] hover:underline transition-colors">
+              รายการบรีฟ
+            </Link>{' '}
+            <CaretRight /> <b>{id}</b>
           </div>
-        ) : (
-          <>
-            <div className="breadcrumbs">
-              ประกาศหานักรีวิว <CaretRight />{' '}
-              <Link to="/briefs" className="hover:text-[#5135ff] hover:underline transition-colors">
-                รายการบรีฟ
-              </Link>{' '}
-              <CaretRight /> <b>{id}</b>
-            </div>
-            <div className="detail-heading">
-              <button className="back-inline" onClick={onBack}>
-                <ArrowLeft /> กลับ
-              </button>
-            </div>
-            <section className="project-summary brief-card">
-              <BriefSummary brief={brief} onEdit={() => setIsEditOpen(true)} />
-            </section>
+          <div className="detail-heading">
+            <button className="back-inline" onClick={onBack}>
+              <ArrowLeft /> กลับ
+            </button>
+          </div>
+          <section className="project-summary brief-card">
+            <BriefSummary brief={brief} onEdit={() => setIsEditOpen(true)} />
+          </section>
 
-            <div>
-              <PostingList
-                briefId={brief?.id || id}
-                onCreate={() => setIsCreatePostingOpen(true)}
-              />
-            </div>
-          </>
-        )}
+          <div>
+            <PostingList briefId={brief?.id || id} onCreate={() => setIsCreatePostingOpen(true)} />
+          </div>
+        </>
       </main>
     </div>
   );

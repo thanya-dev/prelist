@@ -266,10 +266,9 @@ export function PostingCalendarList({ briefId, tableOnly = false, onCreate }) {
                             style={{ cursor: !isActive ? 'not-allowed' : 'pointer' }}
                           >
                             <button
-                              className="flex items-center justify-center gap-1.5 w-full border border-slate-300 text-[#64748b] hover:border-[#3b82f6] hover:text-[#3b82f6] hover:bg-slate-50 rounded-md transition-colors"
+                              className="posting-row-action flex items-center justify-center gap-1.5 w-full border border-slate-300 text-[#64748b] hover:border-[#3b82f6] hover:text-[#3b82f6] hover:bg-slate-50 rounded-md transition-colors"
                               style={{
                                 padding: '4px 10px',
-                                fontSize: '12px',
                                 ...(!isActive ? { opacity: 0.5, pointerEvents: 'none' } : {}),
                               }}
                               disabled={!isActive}
@@ -295,8 +294,8 @@ export function PostingCalendarList({ briefId, tableOnly = false, onCreate }) {
                             )}
                           </div>
                           <button
-                            className="flex items-center justify-center w-full border border-[#3b82f6] text-[#3b82f6] hover:bg-[#eff6ff] rounded-md font-medium transition-colors"
-                            style={{ fontSize: '12px', padding: '4px 10px' }}
+                            className="posting-row-action flex items-center justify-center w-full border border-[#3b82f6] text-[#3b82f6] hover:bg-[#eff6ff] rounded-md font-medium transition-colors"
+                            style={{ padding: '4px 10px' }}
                             onClick={() => openJob(job)}
                           >
                             ดูรายละเอียดงาน ↗

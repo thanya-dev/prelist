@@ -394,3 +394,7 @@ Brief Detail announcement Table paginates filtered results at 10 postings per pa
 Brief Detail announcement heading/create action, filters, search, table and pagination sit directly on the page without an enclosing section card. Keep a single heading and the table’s own bounded scrolling surface.
 
 All social media platform icons across the website use the supplied files in `public/assets/social` through the shared `PlatformLogo` component. Preserve saved platform values and support legacy spelling/case aliases.
+
+All create/edit forms disable their create/save action until required fields pass the same validation used on submit, including trimmed text, ranges and Brief ID format/uniqueness. Announcement Draft requires only a title; Active/Inactive requires all mandatory fields. This supersedes opening announcement confirmation with incomplete required fields.
+
+Brief Detail announcement table typography follows the Buddy Review hierarchy: primary row information uses 16px/24px; status badges/filter labels, table headings, subtitles, Job IDs and row actions use 14px/20px. Preserve these sizes on narrow viewports and scroll the table inside its bounded surface.

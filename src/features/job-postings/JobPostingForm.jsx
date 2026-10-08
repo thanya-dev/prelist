@@ -1,3 +1,4 @@
+import { validateAnnouncement } from './validateAnnouncement.js';
 import { useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Field } from '../../components/ui/Field.jsx';
@@ -53,27 +54,11 @@ export function JobPostingForm({ postingId: id, briefId, copyFromId, onClose, on
     setValues((current) => ({ ...current, [key]: value }));
     setErrors((current) => ({ ...current, [key]: '' }));
   };
+  const canSave = Object.keys(validateAnnouncement(values)).length === 0;
   const handleSave = (forceDraft = false) => {
     const isDraft = forceDraft || values.announcementStatus === 'draft';
     setIsSaveModalOpen(false);
-    const nextErrors = {};
-    if (!values.name.trim()) nextErrors.name = 'กรุณาระบุชื่อประกาศ';
-    if (!values.subtitle.trim()) nextErrors.subtitle = 'กรุณาระบุคำอธิบายประกาศ';
-    if (!values.shortBrief.trim()) nextErrors.shortBriefHtml = 'กรุณาระบุรายละเอียดงาน';
-    if (!values.owner.trim()) nextErrors.owner = 'กรุณาเลือกผู้ดูแล';
-    if (!values.platforms.length) nextErrors.platforms = 'เลือกอย่างน้อย 1 แพลตฟอร์ม';
-    if (
-      values.followerMin === '' ||
-      values.followerMax === '' ||
-      !Number.isFinite(Number(values.followerMin)) ||
-      Number(values.followerMin) < 0 ||
-      !Number.isFinite(Number(values.followerMax)) ||
-      Number(values.followerMax) < Number(values.followerMin)
-    )
-      nextErrors.followerMin = 'ระบุช่วงผู้ติดตามให้ถูกต้อง';
-    for (const key of ['wage', 'productValue'])
-      if (values[key] === '' || !Number.isFinite(Number(values[key])) || Number(values[key]) < 0)
-        nextErrors[key] = 'ระบุมูลค่าตั้งแต่ 0 บาท';
+    const nextErrors = validateAnnouncement(values, isDraft);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) {
       requestAnimationFrame(() => {
@@ -332,7 +317,11 @@ export function JobPostingForm({ postingId: id, briefId, copyFromId, onClose, on
           <button className="secondary-button" onClick={onClose || (() => navigate(backPath))}>
             ยกเลิก
           </button>
-          <button className="primary" onClick={() => setIsSaveModalOpen(true)}>
+          <button
+            className="primary disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+            disabled={!canSave}
+            onClick={() => canSave && setIsSaveModalOpen(true)}
+          >
             {isEditing ? 'บันทึกการแก้ไข' : 'สร้างประกาศ'}
           </button>
         </div>

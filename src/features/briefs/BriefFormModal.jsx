@@ -27,7 +27,9 @@ export function BriefFormModal({ brief = null, onClose, onSave }) {
   const handleKeyDown = (event) => {
     if (event.key === 'Escape') onClose();
     if (event.key === 'Tab') {
-      const controls = [...dialogRef.current.querySelectorAll('input, button')];
+      const controls = [
+        ...dialogRef.current.querySelectorAll('input:not(:disabled), button:not(:disabled)'),
+      ];
       const first = controls[0];
       const last = controls[controls.length - 1];
       if (event.shiftKey && document.activeElement === first) {
@@ -47,6 +49,7 @@ export function BriefFormModal({ brief = null, onClose, onSave }) {
     if (existingBrief && existingBrief.id !== brief?.id) return 'เลขบรีฟนี้ถูกใช้งานแล้ว';
     return '';
   }
+  const canSave = Boolean(name.trim()) && !validateBriefNumber(briefNumbers[0].trim());
   function handleSubmit(event) {
     event.preventDefault();
     const nextErrors = {};
@@ -147,7 +150,11 @@ export function BriefFormModal({ brief = null, onClose, onSave }) {
           <button type="button" className="secondary-button" onClick={onClose}>
             ยกเลิก
           </button>
-          <button type="submit" className="primary">
+          <button
+            type="submit"
+            className="primary disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+            disabled={!canSave}
+          >
             {isEditing ? 'บันทึกการแก้ไข' : 'สร้างบรีฟ'}
           </button>
         </footer>

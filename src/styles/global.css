@@ -5297,6 +5297,21 @@
   .brief-detail-page .posting-page-heading p {
     @apply text-sm;
   }
+  .brief-detail-page .posting-status-filters button,
+  .brief-detail-page .posting-badge {
+    @apply text-sm leading-5 font-semibold;
+  }
+  .brief-detail-page .posting-table th {
+    @apply text-sm leading-5 font-medium;
+  }
+  .brief-detail-page .posting-table td {
+    @apply text-base leading-6;
+  }
+  .brief-detail-page .posting-table td small,
+  .brief-detail-page .posting-table .id-pill,
+  .brief-detail-page .posting-table .posting-row-action {
+    @apply text-sm leading-5;
+  }
   .brief-products-section > h2 {
     @apply mb-2;
   }

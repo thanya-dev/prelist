@@ -1,3 +1,4 @@
+import { ReviewerListSkeleton } from './ReviewerListSkeleton.jsx';
 import { toggleArrayValue } from '../../utils/array.js';
 import { downloadCsv } from '../../utils/csv.js';
 import { PlatformLogo } from '../../components/shared/PlatformLogo.jsx';
@@ -54,7 +55,7 @@ export function JobPostingDetail() {
   const [activeTab, setActiveTab] = useState('สมัคร');
   const [viewMode, setViewMode] = useState('list');
   const navigate = useNavigate();
-  const { setDecisions, decide, decisionFor } = useReviewerDecisions(job.id);
+  const { decisions, setDecisions, decide, decisionFor } = useReviewerDecisions(job.id);
   const matchesTab = (item, tab) => {
     const status = decisionFor(item)?.status;
     if (tab === 'สมัคร') return !status || status === 'pending';
@@ -75,15 +76,28 @@ export function JobPostingDetail() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 24;
+  const [isReviewersLoading, setIsReviewersLoading] = useState(true);
+
+  useEffect(() => {
+    setIsReviewersLoading(true);
+    const timeoutId = window.setTimeout(() => setIsReviewersLoading(false), 450);
+    return () => window.clearTimeout(timeoutId);
+  }, [currentPage, activeTab, viewMode, mainTab, decisions, job.id]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [activeTab]);
 
   const totalPages = Math.ceil(visibleReviewers.length / pageSize);
+  const activePage = Math.min(currentPage, Math.max(1, totalPages));
+  const handleChangePage = (page) => {
+    if (page === activePage || isReviewersLoading) return;
+    setIsReviewersLoading(true);
+    setCurrentPage(page);
+  };
   const paginatedReviewers = visibleReviewers.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
+    (activePage - 1) * pageSize,
+    activePage * pageSize,
   );
 
   const customerSelected = (item) => decisionFor(item)?.status === 'Accept';
@@ -336,7 +350,10 @@ export function JobPostingDetail() {
                   return (
                     <button
                       key={name}
-                      onClick={() => setActiveTab(name)}
+                      onClick={() => {
+                        if (name !== activeTab) setIsReviewersLoading(true);
+                        setActiveTab(name);
+                      }}
                       style={{
                         padding: '6px 16px',
                         borderRadius: '6px',
@@ -408,7 +425,7 @@ export function JobPostingDetail() {
                 <input
                   type="checkbox"
                   checked={allVisibleSelected}
-                  disabled={!eligibleVisibleReviewers.length}
+                  disabled={isReviewersLoading || !eligibleVisibleReviewers.length}
                   onChange={toggleVisibleReviewers}
                 />{' '}
                 เลือกทั้งหมดในแท็บนี้
@@ -432,7 +449,7 @@ export function JobPostingDetail() {
                 {activeTab === 'ทีมงานเลือกแล้ว' && (
                   <button
                     className="secondary-button"
-                    disabled={!eligibleSelectedIds.length}
+                    disabled={isReviewersLoading || !eligibleSelectedIds.length}
                     onClick={exportSelectedCsv}
                   >
                     Export CSV ({eligibleSelectedIds.length})
@@ -440,14 +457,14 @@ export function JobPostingDetail() {
                 )}
                 <button
                   className="danger"
-                  disabled={!eligibleSelectedIds.length}
+                  disabled={isReviewersLoading || !eligibleSelectedIds.length}
                   onClick={() => setConfirmDecision({ type: 'bulk', action: 'Reject' })}
                 >
                   <X weight="bold" /> Reject ({eligibleSelectedIds.length})
                 </button>
                 <button
                   className="primary"
-                  disabled={!eligibleSelectedIds.length}
+                  disabled={isReviewersLoading || !eligibleSelectedIds.length}
                   onClick={() => setConfirmDecision({ type: 'bulk', action: 'Accept' })}
                 >
                   <Check weight="bold" /> Accept ({eligibleSelectedIds.length})
@@ -455,7 +472,12 @@ export function JobPostingDetail() {
               </div>
               <span role="status">{bulkNotice}</span>
             </div>
-            {!visibleReviewers.length ? (
+            {isReviewersLoading ? (
+              <ReviewerListSkeleton
+                viewMode={viewMode}
+                count={Math.max(1, paginatedReviewers.length)}
+              />
+            ) : !visibleReviewers.length ? (
               <div className="empty-state">
                 <Users size={32} />
                 <h3>ไม่มีนักรีวิวในสถานะนี้</h3>
@@ -490,7 +512,7 @@ export function JobPostingDetail() {
                           type="checkbox"
                           aria-label="เลือกนักรีวิวทั้งหมดในแท็บนี้"
                           checked={allVisibleSelected}
-                          disabled={!eligibleVisibleReviewers.length}
+                          disabled={isReviewersLoading || !eligibleVisibleReviewers.length}
                           onChange={toggleVisibleReviewers}
                         />
                       </th>
@@ -938,23 +960,25 @@ export function JobPostingDetail() {
             {totalPages > 1 && (
               <div className="pagination" style={{ marginTop: '32px' }}>
                 <button
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={isReviewersLoading || activePage === 1}
+                  onClick={() => handleChangePage(Math.max(1, activePage - 1))}
                 >
                   ‹
                 </button>
                 {Array.from({ length: totalPages }).map((_, i) => (
                   <button
                     key={i + 1}
-                    className={currentPage === i + 1 ? 'selected' : ''}
-                    onClick={() => setCurrentPage(i + 1)}
+                    disabled={isReviewersLoading}
+                    aria-label={`หน้านักรีวิว ${i + 1}`}
+                    className={activePage === i + 1 ? 'selected' : ''}
+                    onClick={() => handleChangePage(i + 1)}
                   >
                     {i + 1}
                   </button>
                 ))}
                 <button
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={isReviewersLoading || activePage === totalPages}
+                  onClick={() => handleChangePage(Math.min(totalPages, activePage + 1))}
                 >
                   ›
                 </button>
@@ -1005,6 +1029,7 @@ export function JobPostingDetail() {
                 type="button"
                 className="primary"
                 onClick={() => {
+                  setIsReviewersLoading(true);
                   if (confirmDecision.type === 'bulk') {
                     executeBulkDecision(confirmDecision.action);
                   } else {

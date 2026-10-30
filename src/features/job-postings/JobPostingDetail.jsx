@@ -1,6 +1,8 @@
 import { ReviewerListSkeleton } from './ReviewerListSkeleton.jsx';
 import { toggleArrayValue } from '../../utils/array.js';
 import { downloadCsv } from '../../utils/csv.js';
+import { getBriefById } from '../briefs/briefApi.js';
+import { PRE_LIST_HEADERS, createPreListFilename, createPreListRows } from './preListExport.js';
 import { PlatformLogo } from '../../components/shared/PlatformLogo.jsx';
 import { JobPostingFormModal } from './JobPostingFormModal.jsx';
 import { useReviewerDecisions } from './useReviewerDecisions.js';
@@ -114,20 +116,23 @@ export function JobPostingDetail() {
     setSelectedReviewerIds((current) => toggleArrayValue(current, reviewerId));
   };
   const exportSelectedCsv = () => {
-    const selectedItems = reviewers.filter((item) => eligibleSelectedIds.includes(item.id));
+    const selectedItems = reviewers.filter(
+      (item) => eligibleSelectedIds.includes(item.id) && matchesTab(item, 'ทีมงานเลือกแล้ว'),
+    );
     if (!selectedItems.length) return;
 
-    const headers = ['Username', 'Platform', 'Followers', 'Est. Reach'];
-    const rows = selectedItems.map((item) => [
-      item.username,
-      item.platform,
-      item.followers,
-      item.estReach,
-    ]);
-
-    downloadCsv(`reviewers-${job.id}.csv`, headers, rows);
+    const brief = getBriefById(job.brief);
+    downloadCsv(
+      createPreListFilename({
+        briefId: brief?.id || job.brief || '-',
+        briefName: brief?.title || brief?.name || '',
+        jobId: job.id,
+      }),
+      PRE_LIST_HEADERS,
+      createPreListRows(selectedItems),
+    );
     setSelectedReviewerIds([]);
-    setBulkNotice(`Export ${selectedItems.length} คนเป็น CSV เรียบร้อย`);
+    setBulkNotice(`Export Pre-List ${selectedItems.length} คนเป็น CSV เรียบร้อย`);
   };
   const allVisibleSelected =
     eligibleVisibleReviewers.length > 0 &&

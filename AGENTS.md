@@ -428,3 +428,5 @@ Extract duplicated general-purpose function logic into `src/utils` and reuse it 
 Job Posting reviewer lists show matching table/card skeletons during pagination and after confirmed individual or bulk Accept/Reject decisions. Preserve reviewer filters, selection and saved decisions; disable bulk actions during loading and keep the current page within the available result range.
 
 Prioritize fast initial loading and responsive interactions. Avoid artificial page-loading delays for locally available data; preserve the explicitly required reviewer pagination/decision skeletons. Preload split routes on user intent rather than eagerly loading all pages.
+
+Job Posting reviewer export is a Pre-List CSV (UTF-8 with BOM) containing only selected ทีมงานเลือกแล้ว reviewers. Filename: `Pre-List ${Brief ID} : ${Brief Name} (${Job ID}).csv`, with the Brief Name trimmed and `\ / * ? " < > |` replaced by `-`. Columns in order: No. (from 1), Account Name, Link Account (applied account profile URL), Platform (display name, e.g. Instagram, TikTok, X, Lemon 8), Followers (plain integer, no commas).

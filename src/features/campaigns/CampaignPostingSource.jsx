@@ -24,6 +24,7 @@ export function CampaignPostingSource({
   onBriefChange,
   error,
   selectRef,
+  savedPosting = null,
 }) {
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
@@ -36,8 +37,18 @@ export function CampaignPostingSource({
         .map((briefId) => getBriefById(briefId)?.id || briefId),
     ),
   ];
-  const linkedPostings = postings.filter((posting) => posting.brief === briefId);
   const selectedIds = new Set(sourcePostings.map((posting) => posting.id));
+  // Pin only the posting saved on the campaign (not unsaved picks) so the list stays still
+  // while choosing. Fall back to the saved snapshot when it is no longer linked to the Brief.
+  const pinnedPosting = savedPosting
+    ? postings.find((posting) => posting.id === savedPosting.id) || savedPosting
+    : null;
+  const isPinnedInBrief =
+    pinnedPosting && (getBriefById(pinnedPosting.brief)?.id || pinnedPosting.brief) === briefId;
+  const linkedPostings = [
+    ...(isPinnedInBrief ? [pinnedPosting] : []),
+    ...postings.filter((posting) => posting.brief === briefId && posting.id !== pinnedPosting?.id),
+  ];
   const search = query.trim().toLocaleLowerCase();
   const filteredPostings = linkedPostings.filter((posting) =>
     [posting.name, posting.id, posting.brand, posting.brief].some((value) =>
@@ -53,12 +64,9 @@ export function CampaignPostingSource({
     currentPage * PAGE_SIZE,
   );
 
-  function handleToggle(posting) {
-    onSelect(
-      selectedIds.has(posting.id)
-        ? sourcePostings.filter((selectedPosting) => selectedPosting.id !== posting.id)
-        : [...sourcePostings, posting],
-    );
+  // Only one source posting can be selected; keep the array shape for saved-data compatibility.
+  function handleSelect(posting) {
+    onSelect([posting]);
   }
 
   return (
@@ -66,7 +74,7 @@ export function CampaignPostingSource({
       <h3>
         <LinkSimple size={20} /> ข้อมูลจากประกาศ
       </h3>
-      <p>เลือกได้หลายประกาศจาก Brief ที่ PM กำหนดไว้ในโปรเจกต์นี้</p>
+      <p>เลือกประกาศ 1 รายการจาก Brief ที่ PM กำหนดไว้ในโปรเจกต์นี้</p>
       {!briefIds.length && (
         <p>โปรเจกต์นี้ยังไม่มี Brief ID กรุณาให้ PM เพิ่ม Brief ID ในโปรเจกต์ก่อนเลือกประกาศ</p>
       )}
@@ -100,7 +108,7 @@ export function CampaignPostingSource({
               เลือกประกาศ <em>*</em>
             </span>
             <span className="cw-picker-count" aria-live="polite">
-              <CheckCircle size={16} /> เลือกแล้ว {sourcePostings.length}
+              <CheckCircle size={16} /> เลือกแล้ว {Math.min(sourcePostings.length, 1)}/1
             </span>
           </div>
           <div className="cw-picker-box">
@@ -129,35 +137,7 @@ export function CampaignPostingSource({
               )}
             </div>
             <div className="cw-picker-tabs">
-              <div className="flex items-center gap-3 py-2">
-                <label className="flex items-center gap-2 cursor-pointer font-medium hover:text-[#1a202c]">
-                  <input
-                    type="checkbox"
-                    className="m-0 h-4 w-4 shrink-0"
-                    style={{ accentColor: '#3286d3', marginTop: '2px' }}
-                    checked={
-                      visiblePostings.length > 0 &&
-                      visiblePostings.every((p) => selectedIds.has(p.id))
-                    }
-                    onChange={() => {
-                      const visibleIds = new Set(visiblePostings.map((p) => p.id));
-                      const allVisibleSelected = visiblePostings.every((p) =>
-                        selectedIds.has(p.id),
-                      );
-                      if (allVisibleSelected) {
-                        onSelect(sourcePostings.filter((p) => !visibleIds.has(p.id)));
-                      } else {
-                        const newSelections = visiblePostings.filter((p) => !selectedIds.has(p.id));
-                        onSelect([...sourcePostings, ...newSelections]);
-                      }
-                    }}
-                  />
-                  เลือกหน้านี้
-                </label>
-                <span className="text-muted border-l border-gray-300 pl-3">
-                  ทั้งหมด {linkedPostings.length} ประกาศ
-                </span>
-              </div>
+              <span className="text-muted py-2">ทั้งหมด {linkedPostings.length} ประกาศ</span>
               {sourcePostings.length > 0 && (
                 <button type="button" className="cw-picker-clear" onClick={() => onSelect([])}>
                   ล้างที่เลือก
@@ -166,23 +146,29 @@ export function CampaignPostingSource({
             </div>
             <div
               className="cw-picker-list"
-              role="group"
+              role="radiogroup"
               aria-labelledby="posting-picker-label"
               aria-describedby={error ? 'source-posting-error' : undefined}
             >
               {visiblePostings.map((posting) => (
                 <div
                   key={posting.id}
-                  className={`cw-picker-row ${selectedIds.has(posting.id) ? 'is-selected' : ''}`}
+                  className={`cw-picker-row ${selectedIds.has(posting.id) ? 'is-selected' : ''} ${posting.id === pinnedPosting?.id ? 'is-saved' : ''}`}
                 >
                   <label className="cw-picker-option">
                     <input
-                      type="checkbox"
+                      type="radio"
+                      name="campaign-source-posting"
                       checked={selectedIds.has(posting.id)}
-                      onChange={() => handleToggle(posting)}
+                      onChange={() => handleSelect(posting)}
                     />
 
                     <span className="cw-picker-copy">
+                      {posting.id === pinnedPosting?.id && (
+                        <span className="cw-picker-saved-badge">
+                          <CheckCircle size={14} weight="fill" /> ใช้อยู่ในแคมเปญนี้
+                        </span>
+                      )}
                       <span className="cw-picker-title">{posting.name}</span>
                       <span className="cw-picker-meta">
                         {posting.subtitle && <span className="block">{posting.subtitle}</span>}

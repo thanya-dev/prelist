@@ -86,6 +86,7 @@ export function applyCampaignPostingSource(campaign) {
         ...getCampaignPostingFields(postings),
         sourcePostings: postings,
         name: campaign.name ?? postings[0].name ?? '',
+        cover: campaign.cover || postings[0].image || '',
       }
     : { ...campaign, sourcePostings: [] };
 }

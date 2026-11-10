@@ -47,3 +47,6 @@ function getCampaigns() {
 export function getCampaignById(id) {
   return getCampaigns()[id] || (id === DEFAULT_CAMPAIGN.id ? DEFAULT_CAMPAIGN : null);
 }
+export function saveCampaign(campaign) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...getCampaigns(), [campaign.id]: campaign }));
+}

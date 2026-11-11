@@ -1,3 +1,4 @@
+import { getStoredReviewerDecisions } from '../job-postings/reviewerDecisionStore.js';
 import { readStoredJson } from '../../utils/storage.js';
 import { PRELIST_REVIEWERS } from '../projects/prelistSeeds.js';
 import { SEED_JOB_POSTINGS } from '../job-postings/jobPostingSeeds.js';
@@ -7,7 +8,7 @@ export function getAnnouncementReviewers(posting) {
     decisions = {};
   try {
     added = JSON.parse(localStorage.getItem(`buddy-reviewers-${posting.id}`)) || [];
-    decisions = JSON.parse(localStorage.getItem('buddy-reviewer-decisions')) || {};
+    decisions = getStoredReviewerDecisions();
   } catch {
     /* Use available sample applicants. */
   }

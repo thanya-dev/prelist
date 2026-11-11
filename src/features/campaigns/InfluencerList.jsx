@@ -1,3 +1,4 @@
+import { getStoredReviewerDecisions } from '../job-postings/reviewerDecisionStore.js';
 import { readStoredJson } from '../../utils/storage.js';
 import { toggleArrayValue } from '../../utils/array.js';
 import { PlatformLogo } from '../../components/shared/PlatformLogo.jsx';
@@ -43,7 +44,7 @@ export function InfluencerList() {
       setImportError('ไม่พบ Brief ID นี้ในระบบ');
       return;
     }
-    const decisions = readStoredJson('buddy-reviewer-decisions', {});
+    const decisions = getStoredReviewerDecisions();
     const candidates = PRELIST_REVIEWERS.filter(
       (item, index) => index % 2 === 0 && decisions[`${job.id}:${item.id}`]?.status !== 'Reject',
     ).map((item) => ({

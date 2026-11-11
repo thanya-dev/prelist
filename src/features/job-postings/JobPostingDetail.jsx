@@ -6,6 +6,13 @@ import { PRE_LIST_HEADERS, createPreListFilename, createPreListRows } from './pr
 import { PlatformLogo } from '../../components/shared/PlatformLogo.jsx';
 import { JobPostingFormModal } from './JobPostingFormModal.jsx';
 import { useReviewerDecisions } from './useReviewerDecisions.js';
+import { getStoredReviewerDecisions, saveReviewerDecisions } from './reviewerDecisionStore.js';
+import { BriefSelectionSummary } from './BriefSelectionSummary.jsx';
+import {
+  getBriefSelectionSummary,
+  getPostingReviewers,
+  getSiblingPostings,
+} from './briefReviewerSelections.js';
 import { useState, useEffect } from 'react';
 import { useCopy } from '../../hooks/useCopy.js';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
@@ -32,7 +39,6 @@ import { getJobPostings } from './jobPostingApi.js';
 import { JobPostingSummary } from '../../components/shared/JobPostingSummary.jsx';
 import { JobPostingInformation } from '../../components/shared/JobPostingInformation.jsx';
 import { Sidebar } from '../../components/layout/Sidebar.jsx';
-import { PRELIST_REVIEWERS } from '../projects/prelistSeeds.js';
 export function JobPostingDetail() {
   const formatNumber = (val) => {
     if (val == null || val === '—') return val;
@@ -58,6 +64,11 @@ export function JobPostingDetail() {
   const [viewMode, setViewMode] = useState('list');
   const navigate = useNavigate();
   const { decisions, setDecisions, decide, decisionFor } = useReviewerDecisions(job.id);
+  const siblingPostings = getSiblingPostings(job);
+  const selectionFor = (item) => getBriefSelectionSummary(item.id, siblingPostings, decisions);
+  // Duplicate filter: 'all' | 'only' (selected elsewhere in this Brief) | 'exclude'.
+  const [duplicateFilter, setDuplicateFilter] = useState('all');
+  const [undoToast, setUndoToast] = useState(null);
   const matchesTab = (item, tab) => {
     const status = decisionFor(item)?.status;
     if (tab === 'สมัคร') return !status || status === 'pending';
@@ -66,14 +77,32 @@ export function JobPostingDetail() {
     if (tab === 'ลูกค้าเลือกแล้ว') return status === 'Accept';
     return false;
   };
-  const reviewers = [
-    ...(SEED_JOB_POSTINGS.some((posting) => posting.id === job.id) ? PRELIST_REVIEWERS : []).map(
-      (item, sourceIndex) => ({
-        ...item,
-        sourceIndex,
-      }),
-    ),
-  ];
+  const allReviewers = getPostingReviewers(job.id).map((item, sourceIndex) => ({
+    ...item,
+    sourceIndex,
+  }));
+  // "Duplicates" are reviewers selected in another announcement of this Brief and not yet
+  // rejected here. Reviewers the customer selected here can only be rejected one at a time.
+  const isBriefDuplicate = (item) =>
+    selectionFor(item).isSelected && decisionFor(item)?.status !== 'Reject';
+  const briefDuplicates = allReviewers.filter(isBriefDuplicate);
+  // Highlights rows/cards selected elsewhere: green when a customer picked them, else orange.
+  const getBriefSelectionClass = (item) => {
+    const summary = selectionFor(item);
+    if (!summary.isSelected) return '';
+    return `is-brief-selected ${summary.customer.length ? 'is-customer' : 'is-team'}`;
+  };
+  // Filter counts match the filtered results (includes reviewers already rejected here).
+  const selectedElsewhereCount = allReviewers.filter(
+    (item) => selectionFor(item).isSelected,
+  ).length;
+  // The filter shows only reviewers selected elsewhere; the toggle hides them instead.
+  const reviewers =
+    duplicateFilter === 'only'
+      ? allReviewers.filter((item) => selectionFor(item).isSelected)
+      : duplicateFilter === 'exclude'
+        ? allReviewers.filter((item) => !selectionFor(item).isSelected)
+        : allReviewers;
   const visibleReviewers = reviewers.filter((item) => matchesTab(item, activeTab));
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -84,11 +113,17 @@ export function JobPostingDetail() {
     setIsReviewersLoading(true);
     const timeoutId = window.setTimeout(() => setIsReviewersLoading(false), 450);
     return () => window.clearTimeout(timeoutId);
-  }, [currentPage, activeTab, viewMode, mainTab, decisions, job.id]);
+  }, [currentPage, activeTab, viewMode, mainTab, decisions, job.id, duplicateFilter]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeTab]);
+  }, [activeTab, duplicateFilter]);
+
+  useEffect(() => {
+    if (!undoToast) return undefined;
+    const timeoutId = window.setTimeout(() => setUndoToast(null), 5000);
+    return () => window.clearTimeout(timeoutId);
+  }, [undoToast]);
 
   const totalPages = Math.ceil(visibleReviewers.length / pageSize);
   const activePage = Math.min(currentPage, Math.max(1, totalPages));
@@ -149,9 +184,7 @@ export function JobPostingDetail() {
       reviewers.some((item) => item.id === id && canDecide(item)),
     );
     if (!chosenIds.length) return;
-    const decisions = {
-      ...JSON.parse(localStorage.getItem('buddy-reviewer-decisions') || '{}'),
-    };
+    const decisions = getStoredReviewerDecisions();
     chosenIds.forEach((id) => {
       const currentStatus = decisions[`${job.id}:${id}`]?.status;
       let nextStatus = decisionStatus;
@@ -165,22 +198,107 @@ export function JobPostingDetail() {
         date: new Date().toISOString(),
       };
     });
-    localStorage.setItem('buddy-reviewer-decisions', JSON.stringify(decisions));
+    saveReviewerDecisions(decisions);
     setDecisions(decisions);
     setSelectedReviewerIds([]);
   };
 
+  const describeBriefSelection = ({ customer, team }) =>
+    [
+      customer.length &&
+        `ลูกค้าเลือกแล้วใน ${customer.map((entry) => entry.posting.id).join(', ')}`,
+      team.length && `ทีมงานเลือกแล้วใน ${team.map((entry) => entry.posting.id).join(', ')}`,
+    ]
+      .filter(Boolean)
+      .join(' และถูก');
+  // Accepting someone already selected elsewhere in this Brief only warns; it never blocks (BR-04).
+  const acceptDuplicates =
+    confirmDecision?.action === 'Accept'
+      ? reviewers
+          .filter((item) =>
+            confirmDecision.type === 'bulk'
+              ? eligibleSelectedIds.includes(item.id)
+              : item.id === confirmDecision.id,
+          )
+          .map((item) => ({ item, summary: selectionFor(item) }))
+          .filter((entry) => entry.summary.isSelected)
+      : [];
+  // Rejects reviewers in this announcement only, with an automatic reason and a 5-second undo.
+  const rejectBriefDuplicates = (reviewerIds) => {
+    if (!reviewerIds.length) return;
+    const stored = getStoredReviewerDecisions();
+    const previous = {};
+    reviewerIds.forEach((reviewerId) => {
+      const key = `${job.id}:${reviewerId}`;
+      const selectedJobIds = selectionFor({ id: reviewerId })
+        .selected.map((entry) => entry.posting.id)
+        .join(', ');
+      previous[key] = stored[key] ?? null;
+      stored[key] = {
+        status: 'Reject',
+        by: 'thanya@buddyreview.co',
+        sentBy: null,
+        date: new Date().toISOString(),
+        reason: `ถูกเลือกแล้วในประกาศอื่นของบรีฟนี้ (${selectedJobIds})`,
+      };
+    });
+    saveReviewerDecisions(stored);
+    setIsReviewersLoading(true);
+    setDecisions(stored);
+    setSelectedReviewerIds((current) => current.filter((value) => !reviewerIds.includes(value)));
+    setUndoToast({ count: reviewerIds.length, previous });
+  };
+  const handleUndoReject = () => {
+    if (!undoToast) return;
+    const stored = getStoredReviewerDecisions();
+    Object.entries(undoToast.previous).forEach(([key, value]) => {
+      if (value) stored[key] = value;
+      else delete stored[key];
+    });
+    saveReviewerDecisions(stored);
+    setIsReviewersLoading(true);
+    setDecisions(stored);
+    setUndoToast(null);
+  };
+  const confirmSelectedDecision = (action = confirmDecision.action) => {
+    const isDuplicateReject =
+      action === 'Reject' &&
+      confirmDecision.type !== 'bulk' &&
+      allReviewers.some((item) => item.id === confirmDecision.id && isBriefDuplicate(item));
+    if (isDuplicateReject) rejectBriefDuplicates([confirmDecision.id]);
+    else {
+      setIsReviewersLoading(true);
+      if (confirmDecision.type === 'bulk') executeBulkDecision(action);
+      else decide(confirmDecision.id, action);
+    }
+    setConfirmDecision(null);
+  };
   const decisionActions = (item) => {
     if (decisionFor(item)?.status === 'Reject')
       return (
         <div className="reviewer-footer-status rejected">
           <X weight="bold" /> ถูก Reject
+          {decisionFor(item)?.reason && (
+            <small className="reviewer-reject-reason">{decisionFor(item).reason}</small>
+          )}
         </div>
       );
     if (customerSelected(item))
       return (
-        <div className="reviewer-footer-status selected">
-          <CheckCircle weight="fill" /> ลูกค้าเลือกแล้ว
+        <div className="reviewer-decision-actions">
+          {isBriefDuplicate(item) && (
+            <button
+              className="reviewer-reject"
+              onClick={() =>
+                setConfirmDecision({ type: 'individual', id: item.id, action: 'Reject' })
+              }
+            >
+              <X /> Reject
+            </button>
+          )}
+          <div className="reviewer-footer-status selected">
+            <CheckCircle weight="fill" /> ลูกค้าเลือกแล้ว
+          </div>
         </div>
       );
     return (
@@ -319,7 +437,7 @@ export function JobPostingDetail() {
             className={mainTab === 'รายชื่อนักรีวิว' ? 'active' : ''}
             onClick={() => setMainTab('รายชื่อนักรีวิว')}
           >
-            <Users size={20} /> รายชื่อนักรีวิว ({reviewers.length})
+            <Users size={20} /> รายชื่อนักรีวิว ({allReviewers.length})
           </button>
         </div>
 
@@ -331,6 +449,39 @@ export function JobPostingDetail() {
               marginTop: '24px',
             }}
           >
+            {(briefDuplicates.length > 0 || duplicateFilter !== 'all') && (
+              <div className="brief-duplicate-filter">
+                <p className="brief-duplicate-message" role="status">
+                  {briefDuplicates.length > 0
+                    ? `⚠ มี ${briefDuplicates.length} คนที่ถูกเลือกแล้วในประกาศอื่นของบรีฟนี้`
+                    : 'ไม่มีคนที่ถูกเลือกแล้วในประกาศอื่นที่ต้องจัดการแล้ว'}
+                </p>
+                <div className="brief-duplicate-actions">
+                  <span id="brief-duplicate-filter-label">แสดง</span>
+                  <div
+                    className="brief-duplicate-segmented"
+                    role="group"
+                    aria-labelledby="brief-duplicate-filter-label"
+                  >
+                    {[
+                      ['all', `ทุกคน (${allReviewers.length})`],
+                      ['only', `ดูแค่คนซ้ำ (${selectedElsewhereCount})`],
+                      ['exclude', `ไม่เอาคนซ้ำ (${allReviewers.length - selectedElsewhereCount})`],
+                    ].map(([value, label]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        className={duplicateFilter === value ? 'is-active' : ''}
+                        aria-pressed={duplicateFilter === value}
+                        onClick={() => setDuplicateFilter(value)}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
             <div
               className="reviewer-list-controls"
               style={{
@@ -380,6 +531,7 @@ export function JobPostingDetail() {
                   display: 'flex',
                   gap: '12px',
                   alignItems: 'center',
+                  flexWrap: 'wrap',
                 }}
               >
                 <div
@@ -587,6 +739,7 @@ export function JobPostingDetail() {
                     {paginatedReviewers.map((item) => (
                       <tr
                         key={item.id}
+                        className={getBriefSelectionClass(item)}
                         style={{
                           borderBottom: '1px solid #e2e8f0',
                         }}
@@ -655,6 +808,7 @@ export function JobPostingDetail() {
                                   {item.username}
                                 </a>
                               </div>
+                              <BriefSelectionSummary summary={selectionFor(item)} />
                               <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
                                 สมัครเมื่อ 12/09/2026 14:
                                 {(10 + ((item.sourceIndex || 0) % 50)).toString().padStart(2, '0')}
@@ -750,7 +904,7 @@ export function JobPostingDetail() {
                 {paginatedReviewers.map((item) => (
                   <div
                     key={item.id}
-                    className={`job-reviewer-card ${selectedReviewerIds.includes(item.id) ? 'is-selected' : ''}`}
+                    className={`job-reviewer-card ${selectedReviewerIds.includes(item.id) ? 'is-selected' : ''} ${getBriefSelectionClass(item)}`}
                     style={{
                       background: 'white',
                       borderRadius: '12px',
@@ -848,6 +1002,7 @@ export function JobPostingDetail() {
                           {item.gender}
                         </span>
                       </div>
+                      <BriefSelectionSummary summary={selectionFor(item)} />
                     </div>
                     <div
                       style={{
@@ -1022,31 +1177,70 @@ export function JobPostingDetail() {
                 ใช่หรือไม่?
               </p>
             </div>
+            {acceptDuplicates.length > 0 && (
+              <div className="brief-selection-warning" role="alert">
+                {confirmDecision.type === 'bulk' ? (
+                  <>
+                    <strong>มี {acceptDuplicates.length} คนที่ถูกเลือกแล้วในบรีฟนี้</strong>
+                    <ul>
+                      {acceptDuplicates.map(({ item, summary }) => (
+                        <li key={item.id}>
+                          <b>{item.username}</b> ถูก{describeBriefSelection(summary)}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  <strong>คนนี้ถูก{describeBriefSelection(acceptDuplicates[0].summary)}</strong>
+                )}
+              </div>
+            )}
             <footer className="posting-save-actions">
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => setConfirmDecision(null)}
-              >
-                ยกเลิก
-              </button>
-              <button
-                type="button"
-                className="primary"
-                onClick={() => {
-                  setIsReviewersLoading(true);
-                  if (confirmDecision.type === 'bulk') {
-                    executeBulkDecision(confirmDecision.action);
-                  } else {
-                    decide(confirmDecision.id, confirmDecision.action);
-                  }
-                  setConfirmDecision(null);
-                }}
-              >
-                ยืนยัน
-              </button>
+              {acceptDuplicates.length > 0 && confirmDecision.type !== 'bulk' ? (
+                <>
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => confirmSelectedDecision()}
+                  >
+                    เลือกซ้ำอยู่ดี
+                  </button>
+                  <button
+                    type="button"
+                    className="brief-reject-primary"
+                    onClick={() => confirmSelectedDecision('Reject')}
+                  >
+                    <X weight="bold" /> Reject แทน
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => setConfirmDecision(null)}
+                  >
+                    ยกเลิก
+                  </button>
+                  <button
+                    type="button"
+                    className="primary"
+                    onClick={() => confirmSelectedDecision()}
+                  >
+                    {acceptDuplicates.length > 0 ? 'เลือกซ้ำอยู่ดี' : 'ยืนยัน'}
+                  </button>
+                </>
+              )}
             </footer>
           </section>
+        </div>
+      )}
+      {undoToast && (
+        <div className="toast reviewer-undo-toast" role="status">
+          Reject แล้ว {undoToast.count} คน
+          <button type="button" onClick={handleUndoReject}>
+            เลิกทำ
+          </button>
         </div>
       )}
     </div>

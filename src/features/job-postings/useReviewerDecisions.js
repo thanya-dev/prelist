@@ -1,7 +1,7 @@
-import { readStoredJson } from '../../utils/storage.js';
+import { getStoredReviewerDecisions, saveReviewerDecisions } from './reviewerDecisionStore.js';
 import { useState } from 'react';
 export function useReviewerDecisions(jobId) {
-  const [decisions, setDecisions] = useState(() => readStoredJson('buddy-reviewer-decisions', {}));
+  const [decisions, setDecisions] = useState(getStoredReviewerDecisions);
   const decide = (reviewerId, status) => {
     const currentStatus = decisions[`${jobId}:${reviewerId}`]?.status;
     let nextStatus = status;
@@ -13,9 +13,10 @@ export function useReviewerDecisions(jobId) {
       [`${jobId}:${reviewerId}`]: {
         status: nextStatus,
         by: 'thanya@buddyreview.co',
+        date: new Date().toISOString(),
       },
     };
-    localStorage.setItem('buddy-reviewer-decisions', JSON.stringify(next));
+    saveReviewerDecisions(next);
     setDecisions(next);
   };
   const sendToSales = (item) => {
@@ -28,7 +29,7 @@ export function useReviewerDecisions(jobId) {
         sentBy: 'thanya@buddyreview.co',
       },
     };
-    localStorage.setItem('buddy-reviewer-decisions', JSON.stringify(next));
+    saveReviewerDecisions(next);
     setDecisions(next);
   };
   const decisionFor = (item) => decisions[`${jobId}:${item.id}`];

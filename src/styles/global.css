@@ -5596,3 +5596,162 @@
     overflow-wrap: anywhere;
   }
 }
+
+@layer components {
+  .brief-selection {
+    @apply mt-2 mb-2;
+  }
+  .brief-selection-badge {
+    @apply inline-flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-semibold;
+    color: #a16207;
+    line-height: 20px;
+    white-space: nowrap;
+  }
+  .brief-selection-badge svg:first-child {
+    color: #eab308;
+  }
+  .brief-selection-badge:hover,
+  .brief-selection-badge[aria-expanded='true'] {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .brief-selection-badge:focus-visible {
+    @apply rounded;
+    outline: 2px solid #3286d3;
+    outline-offset: 2px;
+  }
+  .brief-selection-applied {
+    @apply m-0 mt-1 text-xs;
+    color: #8a94a6;
+  }
+  .brief-selection-popover {
+    @apply fixed z-50 flex flex-col gap-3 overflow-y-auto rounded-lg border border-line bg-white p-4;
+    box-shadow: 0 12px 32px rgb(39 51 72 / 16%);
+  }
+  .brief-selection-popover h4 {
+    @apply m-0 text-sm font-semibold;
+  }
+  .brief-selection-list {
+    @apply m-0 flex list-none flex-col gap-2 overflow-y-auto p-0;
+    max-height: 340px;
+  }
+  .brief-selection-list li {
+    @apply flex flex-col gap-1 rounded-md border border-line px-3 py-2;
+  }
+  .brief-selection-list li > div {
+    @apply flex items-center justify-between gap-2;
+  }
+  .brief-selection-list a {
+    @apply text-sm font-semibold;
+    color: #3286d3;
+  }
+  .brief-selection-list p {
+    @apply m-0 truncate text-sm;
+  }
+  .brief-selection-list small {
+    @apply text-xs text-muted;
+  }
+  .brief-selection-list.is-applied {
+    max-height: 200px;
+  }
+  .brief-selection-status {
+    @apply rounded-full px-2 text-xs font-medium;
+    line-height: 20px;
+  }
+  .brief-selection-status.is-accept {
+    background: #e3f5ea;
+    color: #1f8a4c;
+  }
+  .brief-selection-status.is-teamaccept {
+    background: #fff3e6;
+    color: #b45f0b;
+  }
+  .brief-selection-more {
+    @apply inline-flex w-fit cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-medium;
+    color: #3286d3;
+  }
+  .brief-selection-warning {
+    @apply mt-3 rounded-md border px-4 py-3 text-sm;
+    background: #fff8ec;
+    border-color: #fbd5ab;
+    color: #8a4a08;
+  }
+  .brief-selection-warning ul {
+    @apply m-0 mt-2 flex max-h-40 flex-col gap-1 overflow-y-auto pl-5;
+  }
+}
+
+@layer components {
+  .brief-reject-primary {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border-0 px-4 py-2 text-sm font-semibold text-white;
+    background: #dc3d43;
+  }
+  .brief-reject-primary:hover:not(:disabled) {
+    background: #c22f35;
+  }
+  .brief-reject-primary:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+  .brief-duplicate-filter {
+    @apply mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3 text-sm font-medium;
+    background: #fff8ec;
+    border-color: #fbd5ab;
+    color: #8a4a08;
+  }
+  .brief-duplicate-message {
+    @apply m-0;
+  }
+  .brief-duplicate-actions {
+    @apply ml-auto flex flex-wrap items-center justify-end gap-3;
+  }
+  .brief-duplicate-segmented {
+    @apply inline-flex overflow-hidden rounded-md border bg-white;
+    border-color: #fbd5ab;
+  }
+  .brief-duplicate-segmented button {
+    @apply cursor-pointer border-0 bg-transparent px-3 py-1.5 text-sm font-medium;
+    color: #8a4a08;
+  }
+  .brief-duplicate-segmented button + button {
+    border-left: 1px solid #fbd5ab;
+  }
+  .brief-duplicate-segmented button.is-active {
+    background: #f59e0b;
+    color: white;
+    font-weight: 600;
+  }
+  .reviewer-footer-status.rejected:has(.reviewer-reject-reason) {
+    @apply flex-wrap;
+    white-space: nowrap;
+  }
+  .reviewer-reject-reason {
+    @apply block w-full text-xs font-normal;
+    color: #8a94a6;
+    white-space: normal;
+  }
+  .reviewer-undo-toast {
+    bottom: 112px;
+  }
+  .reviewer-undo-toast button {
+    @apply cursor-pointer border-0 bg-transparent p-0 font-semibold underline;
+    color: #9cc7f0;
+  }
+}
+
+@layer components {
+  tr.is-brief-selected > td {
+    background: #fffbe6;
+  }
+  tr.is-brief-selected > td:first-child {
+    box-shadow: inset 3px 0 0 #f5c400;
+  }
+  .job-reviewer-card.is-brief-selected {
+    background: #fffbe6 !important;
+    box-shadow: inset 3px 0 0 #f5c400 !important;
+  }
+}
+@layer components {
+  .reviewer-decision-actions .reviewer-footer-status {
+    white-space: nowrap;
+  }
+}

@@ -5670,28 +5670,9 @@
     @apply inline-flex w-fit cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-medium;
     color: #3286d3;
   }
-  .brief-selection-warning {
-    @apply mt-3 rounded-md border px-4 py-3 text-sm;
-    background: #fff8ec;
-    border-color: #fbd5ab;
-    color: #8a4a08;
-  }
-  .brief-selection-warning ul {
-    @apply m-0 mt-2 flex max-h-40 flex-col gap-1 overflow-y-auto pl-5;
-  }
 }
 
 @layer components {
-  .brief-reject-primary {
-    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border-0 px-4 py-2 text-sm font-semibold text-white;
-    background: #dc3d43;
-  }
-  .brief-reject-primary:hover:not(:disabled) {
-    background: #c22f35;
-  }
-  .brief-reject-primary:disabled {
-    @apply cursor-not-allowed opacity-50;
-  }
   .brief-duplicate-filter {
     @apply mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3 text-sm font-medium;
     background: #fff8ec;
@@ -5720,22 +5701,6 @@
     color: white;
     font-weight: 600;
   }
-  .reviewer-footer-status.rejected:has(.reviewer-reject-reason) {
-    @apply flex-wrap;
-    white-space: nowrap;
-  }
-  .reviewer-reject-reason {
-    @apply block w-full text-xs font-normal;
-    color: #8a94a6;
-    white-space: normal;
-  }
-  .reviewer-undo-toast {
-    bottom: 112px;
-  }
-  .reviewer-undo-toast button {
-    @apply cursor-pointer border-0 bg-transparent p-0 font-semibold underline;
-    color: #9cc7f0;
-  }
 }
 
 @layer components {
@@ -5748,10 +5713,5 @@
   .job-reviewer-card.is-brief-selected {
     background: #fffbe6 !important;
     box-shadow: inset 3px 0 0 #f5c400 !important;
-  }
-}
-@layer components {
-  .reviewer-decision-actions .reviewer-footer-status {
-    white-space: nowrap;
   }
 }

@@ -8,7 +8,9 @@ import {
   CaretLeft,
   CaretRight,
   CheckCircle,
+  Prohibit,
 } from '@phosphor-icons/react';
+import { getPostingCampaignUsage } from './campaignApi.js';
 import { getJobPostings } from '../job-postings/jobPostingApi.js';
 import { getBriefs } from '../briefs/briefApi.js';
 
@@ -25,6 +27,7 @@ export function CampaignPostingSource({
   error,
   selectRef,
   savedPosting = null,
+  campaignId = '',
 }) {
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
@@ -37,6 +40,7 @@ export function CampaignPostingSource({
         .map((briefId) => getBriefById(briefId)?.id || briefId),
     ),
   ];
+  const postingUsage = getPostingCampaignUsage(campaignId);
   const selectedIds = new Set(sourcePostings.map((posting) => posting.id));
   // Pin only the posting saved on the campaign (not unsaved picks) so the list stays still
   // while choosing. Fall back to the saved snapshot when it is no longer linked to the Brief.
@@ -150,44 +154,67 @@ export function CampaignPostingSource({
               aria-labelledby="posting-picker-label"
               aria-describedby={error ? 'source-posting-error' : undefined}
             >
-              {visiblePostings.map((posting) => (
-                <div
-                  key={posting.id}
-                  className={`cw-picker-row ${selectedIds.has(posting.id) ? 'is-selected' : ''} ${posting.id === pinnedPosting?.id ? 'is-saved' : ''}`}
-                >
-                  <label className="cw-picker-option">
-                    <input
-                      type="radio"
-                      name="campaign-source-posting"
-                      checked={selectedIds.has(posting.id)}
-                      onChange={() => handleSelect(posting)}
-                    />
-
-                    <span className="cw-picker-copy">
-                      {posting.id === pinnedPosting?.id && (
-                        <span className="cw-picker-saved-badge">
-                          <CheckCircle size={14} weight="fill" /> ใช้อยู่ในแคมเปญนี้
-                        </span>
-                      )}
-                      <span className="cw-picker-title">{posting.name}</span>
-                      <span className="cw-picker-meta">
-                        {posting.subtitle && <span className="block">{posting.subtitle}</span>}
-                        {posting.id} · นักรีวิวที่ลูกค้าเลือก:{' '}
-                        {posting.reviewers || Math.floor((posting.applicants || 0) * 0.4)} คน
-                      </span>
-                    </span>
-                  </label>
-                  <a
-                    href={`/job-postings/${posting.id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={`ดูประกาศ ${posting.name}`}
-                    title="ดูประกาศต้นทาง"
+              {visiblePostings.map((posting) => {
+                const usedByCampaign = postingUsage.get(posting.id);
+                const isUsedElsewhere = Boolean(usedByCampaign);
+                const usageId = `posting-usage-${posting.id}`;
+                return (
+                  <div
+                    key={posting.id}
+                    className={`cw-picker-row ${selectedIds.has(posting.id) ? 'is-selected' : ''} ${posting.id === pinnedPosting?.id ? 'is-saved' : ''} ${isUsedElsewhere ? 'is-used' : ''}`}
                   >
-                    <ArrowSquareOut size={18} />
-                  </a>
-                </div>
-              ))}
+                    <label className="cw-picker-option">
+                      <input
+                        type="radio"
+                        name="campaign-source-posting"
+                        checked={selectedIds.has(posting.id)}
+                        disabled={isUsedElsewhere}
+                        aria-describedby={isUsedElsewhere ? usageId : undefined}
+                        onChange={() => handleSelect(posting)}
+                      />
+
+                      <span className="cw-picker-copy">
+                        {posting.id === pinnedPosting?.id && (
+                          <span className="cw-picker-saved-badge">
+                            <CheckCircle size={14} weight="fill" /> ใช้อยู่ในแคมเปญนี้
+                          </span>
+                        )}
+                        <span className="cw-picker-title">{posting.name}</span>
+                        <span className="cw-picker-meta">
+                          {posting.subtitle && <span className="block">{posting.subtitle}</span>}
+                          {posting.id} · นักรีวิวที่ลูกค้าเลือก:{' '}
+                          {posting.reviewers || Math.floor((posting.applicants || 0) * 0.4)} คน
+                        </span>
+                        {isUsedElsewhere && (
+                          <span id={usageId} className="cw-picker-used">
+                            <Prohibit size={14} aria-hidden="true" />
+                            <span>
+                              ถูกใช้ในแคมเปญ{' '}
+                              <a
+                                href={`/campaigns/${usedByCampaign.id}`}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {usedByCampaign.name || usedByCampaign.id}
+                              </a>{' '}
+                              แล้ว
+                            </span>
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                    <a
+                      href={`/job-postings/${posting.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={`ดูประกาศ ${posting.name}`}
+                      title="ดูประกาศต้นทาง"
+                    >
+                      <ArrowSquareOut size={18} />
+                    </a>
+                  </div>
+                );
+              })}
               {!visiblePostings.length && (
                 <div className="cw-picker-empty">
                   <p>{query ? 'ไม่พบประกาศที่ตรงกับคำค้น' : 'ยังไม่มีประกาศใน Brief นี้'}</p>

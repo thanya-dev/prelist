@@ -4725,6 +4725,28 @@
   .cw-picker-row.is-saved {
     box-shadow: inset 3px 0 0 #3286d3;
   }
+  .cw-picker-row.is-used {
+    background: #f8fafc;
+  }
+  .cw-picker-row.is-used .cw-picker-option {
+    cursor: not-allowed;
+  }
+  .cw-picker-row.is-used .cw-picker-title,
+  .cw-picker-row.is-used .cw-picker-meta {
+    color: #94a3b8;
+  }
+  .cw-picker-used {
+    @apply inline-flex w-fit items-start gap-1 rounded-full px-2 py-0.5 text-xs font-medium;
+    background: #f1f5f9;
+    color: #475569;
+  }
+  .cw-picker-used svg {
+    @apply mt-[2px] shrink-0;
+  }
+  .cw-picker-used a {
+    color: #3286d3;
+    text-decoration: underline;
+  }
   .cw-picker-saved-badge {
     @apply inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium;
     background: #e3f5ea;

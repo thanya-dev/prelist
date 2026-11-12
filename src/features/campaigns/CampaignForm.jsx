@@ -58,6 +58,7 @@ export function CampaignForm() {
         location.state?.copiedCampaign || {
           ...DEFAULT_CAMPAIGN,
           id: '',
+          sourcePostings: [],
           name: '',
           subtitle: '',
           group: '',
@@ -253,6 +254,7 @@ export function CampaignForm() {
             error=""
             selectRef={sourcePostingRef}
             savedPosting={saved?.sourcePostings?.[0] || saved?.sourcePosting || null}
+            campaignId={id || ''}
           />
           <section className="cw-panel">
             <Field

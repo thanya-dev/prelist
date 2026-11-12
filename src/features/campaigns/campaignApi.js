@@ -1,3 +1,5 @@
+import { SEED_JOB_POSTINGS } from '../job-postings/jobPostingSeeds.js';
+
 const STORAGE_KEY = 'buddy-review-campaigns-v1';
 export const DEFAULT_CAMPAIGN = {
   id: 'page-promotion-facebook',
@@ -36,7 +38,29 @@ export const DEFAULT_CAMPAIGN = {
   exampleImages: [],
   exampleVideos: [],
   reward: '',
+  // Prototype sample: this campaign already uses JOB20260901 as its source announcement.
+  sourcePostings: SEED_JOB_POSTINGS.filter((posting) => posting.id === 'JOB20260901').map(
+    (posting) => structuredClone(posting),
+  ),
 };
+// Prototype sample campaigns that already use announcements from NRI202609058, so the
+// source picker can demonstrate announcements taken by other campaigns.
+const SEED_CAMPAIGNS = [
+  {
+    id: 'ktc-instagram-travel',
+    name: 'KTC Travel Instagram Review',
+    sourcePostings: [{ id: 'JOB20260902', brief: 'NRI202609058' }],
+  },
+  {
+    id: 'ktc-tiktok-foodie',
+    name: 'KTC Foodie TikTok Review',
+    sourcePostings: [{ id: 'JOB20260903', brief: 'NRI202609058' }],
+  },
+].map((campaign) => ({
+  ...DEFAULT_CAMPAIGN,
+  subtitle: '',
+  ...campaign,
+}));
 function getCampaigns() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -44,8 +68,33 @@ function getCampaigns() {
     return {};
   }
 }
+function getAllCampaigns() {
+  const savedCampaigns = getCampaigns();
+  const seeds = [DEFAULT_CAMPAIGN, ...SEED_CAMPAIGNS].filter(
+    (campaign) => !savedCampaigns[campaign.id],
+  );
+  return [...seeds, ...Object.values(savedCampaigns)];
+}
 export function getCampaignById(id) {
-  return getCampaigns()[id] || (id === DEFAULT_CAMPAIGN.id ? DEFAULT_CAMPAIGN : null);
+  return (
+    getCampaigns()[id] ||
+    (id === DEFAULT_CAMPAIGN.id ? DEFAULT_CAMPAIGN : null) ||
+    SEED_CAMPAIGNS.find((campaign) => campaign.id === id) ||
+    null
+  );
+}
+// Maps posting ID → the other campaign already using it as its source posting.
+export function getPostingCampaignUsage(excludeCampaignId) {
+  const usage = new Map();
+  getAllCampaigns().forEach((campaign) => {
+    if (!campaign?.id || campaign.id === excludeCampaignId) return;
+    const postings =
+      campaign.sourcePostings || (campaign.sourcePosting ? [campaign.sourcePosting] : []);
+    postings.forEach((posting) => {
+      if (posting?.id && !usage.has(posting.id)) usage.set(posting.id, campaign);
+    });
+  });
+  return usage;
 }
 export function saveCampaign(campaign) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...getCampaigns(), [campaign.id]: campaign }));

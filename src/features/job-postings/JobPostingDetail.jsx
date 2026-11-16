@@ -8,6 +8,8 @@ import { JobPostingFormModal } from './JobPostingFormModal.jsx';
 import { useReviewerDecisions } from './useReviewerDecisions.js';
 import { getStoredReviewerDecisions, saveReviewerDecisions } from './reviewerDecisionStore.js';
 import { BriefSelectionSummary } from './BriefSelectionSummary.jsx';
+import { InfluencerGroupHeader } from './InfluencerGroupHeader.jsx';
+import { getReviewerProfile, groupReviewersByProfile } from './influencerProfiles.js';
 import {
   getBriefSelectionSummary,
   getPostingReviewers,
@@ -30,15 +32,26 @@ import {
   Users,
   X,
   Heart,
-  Cake,
-  GenderMale,
-  GenderFemale,
+  Info,
 } from '@phosphor-icons/react';
 import { SEED_JOB_POSTINGS } from './jobPostingSeeds.js';
 import { getJobPostings } from './jobPostingApi.js';
 import { JobPostingSummary } from '../../components/shared/JobPostingSummary.jsx';
 import { JobPostingInformation } from '../../components/shared/JobPostingInformation.jsx';
 import { Sidebar } from '../../components/layout/Sidebar.jsx';
+const REVIEWER_STATUS_TABS = ['สมัคร', 'ทีมงานเลือกแล้ว', 'ลูกค้าเลือกแล้ว', 'Reject'];
+// Shared column widths so every Influencer profile block's table lines up with the header.
+const REVIEWER_TABLE_COLGROUP = (
+  <colgroup>
+    <col style={{ width: '56px' }} />
+    <col style={{ width: '28%' }} />
+    <col style={{ width: '14%' }} />
+    <col style={{ width: '18%' }} />
+    <col style={{ width: '16%' }} />
+    <col style={{ width: '24%' }} />
+  </colgroup>
+);
+
 export function JobPostingDetail() {
   const formatNumber = (val) => {
     if (val == null || val === '—') return val;
@@ -102,7 +115,12 @@ export function JobPostingDetail() {
       : duplicateFilter === 'exclude'
         ? allReviewers.filter((item) => !selectionFor(item).isSelected)
         : allReviewers;
+  // Reviewers are always grouped by Influencer profile; socials without one share a group.
+  const [collapsedGroupIds, setCollapsedGroupIds] = useState([]);
   const visibleReviewers = reviewers.filter((item) => matchesTab(item, activeTab));
+  const reviewerGroups = groupReviewersByProfile(visibleReviewers, reviewers);
+  // Pagination counts socials in grouped order; a group split across pages repeats its header.
+  const orderedReviewers = reviewerGroups.flatMap((group) => group.reviewers);
 
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 24;
@@ -114,21 +132,29 @@ export function JobPostingDetail() {
     return () => window.clearTimeout(timeoutId);
   }, [currentPage, activeTab, viewMode, mainTab, decisions, job.id, duplicateFilter]);
 
+  // Changing the status tab or duplicate filter resets the list UI: page 1, every group expanded.
   useEffect(() => {
     setCurrentPage(1);
+    setCollapsedGroupIds([]);
   }, [activeTab, duplicateFilter]);
 
-  const totalPages = Math.ceil(visibleReviewers.length / pageSize);
+  const totalPages = Math.ceil(orderedReviewers.length / pageSize);
   const activePage = Math.min(currentPage, Math.max(1, totalPages));
   const handleChangePage = (page) => {
     if (page === activePage || isReviewersLoading) return;
     setIsReviewersLoading(true);
     setCurrentPage(page);
   };
-  const paginatedReviewers = visibleReviewers.slice(
+  const paginatedReviewers = orderedReviewers.slice(
     (activePage - 1) * pageSize,
     activePage * pageSize,
   );
+  const paginatedGroups = reviewerGroups
+    .map((group) => ({
+      group,
+      pageReviewers: group.reviewers.filter((item) => paginatedReviewers.includes(item)),
+    }))
+    .filter(({ pageReviewers }) => pageReviewers.length);
 
   const customerSelected = (item) => decisionFor(item)?.status === 'Accept';
   const [selectedReviewerIds, setSelectedReviewerIds] = useState([]);
@@ -157,7 +183,7 @@ export function JobPostingDetail() {
         jobId: job.id,
       }),
       PRE_LIST_HEADERS,
-      createPreListRows(selectedItems),
+      createPreListRows(selectedItems, getReviewerProfile),
     );
     setSelectedReviewerIds([]);
     setBulkNotice(`Export Pre-List ${selectedItems.length} คนเป็น CSV เรียบร้อย`);
@@ -202,6 +228,44 @@ export function JobPostingDetail() {
     else decide(confirmDecision.id, confirmDecision.action);
     setConfirmDecision(null);
   };
+  const getGroupCheckState = (group) => {
+    const eligible = group.reviewers.filter(canSelect);
+    const selectedCount = eligible.filter((item) => selectedReviewerIds.includes(item.id)).length;
+    if (!eligible.length || !selectedCount) return 'none';
+    return selectedCount === eligible.length ? 'all' : 'some';
+  };
+  const toggleGroupSelection = (group) => {
+    const eligibleIds = group.reviewers.filter(canSelect).map((item) => item.id);
+    setSelectedReviewerIds((current) =>
+      getGroupCheckState(group) === 'all'
+        ? current.filter((id) => !eligibleIds.includes(id))
+        : [...new Set([...current, ...eligibleIds])],
+    );
+  };
+  const toggleGroupExpanded = (groupId) =>
+    setCollapsedGroupIds((current) => toggleArrayValue(current, groupId));
+  // "+N social อยู่ในแท็บ X" for socials of this person that sit in other status tabs.
+  const getOtherTabNote = (group) => {
+    if (!group.profile) return '';
+    const counts = REVIEWER_STATUS_TABS.filter((tab) => tab !== activeTab)
+      .map((tab) => [tab, group.allSocials.filter((item) => matchesTab(item, tab)).length])
+      .filter(([, count]) => count > 0);
+    if (!counts.length) return '';
+    return counts.map(([tab, count]) => `+${count} social อยู่ในแท็บ “${tab}”`).join(' · ');
+  };
+  const renderGroupHeader = (group) => {
+    return (
+      <InfluencerGroupHeader
+        group={group}
+        isExpanded={!collapsedGroupIds.includes(group.id)}
+        checkState={getGroupCheckState(group)}
+        isCheckDisabled={!group.reviewers.some(canSelect)}
+        onToggleExpanded={() => toggleGroupExpanded(group.id)}
+        onToggleCheck={() => toggleGroupSelection(group)}
+      />
+    );
+  };
+  // Ghost icon Reject / Accept buttons shared by table rows and card footers.
   const decisionActions = (item) => {
     if (decisionFor(item)?.status === 'Reject')
       return (
@@ -216,22 +280,345 @@ export function JobPostingDetail() {
         </div>
       );
     return (
-      <div className="reviewer-decision-actions">
-        <button
-          className="reviewer-reject"
-          onClick={() => setConfirmDecision({ type: 'individual', id: item.id, action: 'Reject' })}
-        >
-          <X /> Reject
-        </button>
-        <button
-          className="reviewer-accept"
-          onClick={() => setConfirmDecision({ type: 'individual', id: item.id, action: 'Accept' })}
-        >
-          <Check /> Accept
-        </button>
+      <div className="reviewer-icon-actions">
+        {[
+          ['Reject', 'reviewer-icon-reject', <X key="icon" weight="bold" size={18} />],
+          ['Accept', 'reviewer-icon-accept', <Check key="icon" weight="bold" size={18} />],
+        ].map(([action, className, icon]) => (
+          <button
+            key={action}
+            type="button"
+            className={`reviewer-icon-action ${className}`}
+            aria-label={`${action} ${item.username}`}
+            data-tooltip={action}
+            onClick={() => setConfirmDecision({ type: 'individual', id: item.id, action })}
+          >
+            {icon}
+          </button>
+        ))}
       </div>
     );
   };
+  const renderReviewerRow = (item) => (
+    <tr
+      key={item.id}
+      className={getBriefSelectionClass(item)}
+      style={{
+        borderBottom: '1px solid #e2e8f0',
+      }}
+    >
+      <td
+        style={{
+          padding: '16px',
+        }}
+      >
+        <input
+          type="checkbox"
+          aria-label={`เลือก ${item.username}`}
+          checked={eligibleSelectedIds.includes(item.id)}
+          disabled={!canDecide(item)}
+          onChange={() => toggleReviewer(item.id)}
+        />
+      </td>
+      <td style={{ padding: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <a
+            href="https://www.facebook.com/buddyreview"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              position: 'relative',
+              display: 'inline-block',
+              width: '40px',
+              height: '40px',
+            }}
+          >
+            <img
+              src={item.images[0]}
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+              }}
+              alt=""
+            />
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '-2px',
+                right: '-2px',
+                background: 'white',
+                borderRadius: '50%',
+                padding: '2px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+              }}
+            >
+              <PlatformLogo platform={item.platform} size={14} />
+            </div>
+          </a>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <a
+                href="https://www.facebook.com/buddyreview"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="reviewer-username"
+              >
+                {item.username}
+              </a>
+            </div>
+            <BriefSelectionSummary summary={selectionFor(item)} />
+            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+              สมัครเมื่อ 12/09/2026 14:
+              {(10 + ((item.sourceIndex || 0) % 50)).toString().padStart(2, '0')}
+            </div>
+          </div>
+        </div>
+      </td>
+      <td
+        style={{
+          padding: '16px',
+          color: '#414141',
+          fontSize: '13px',
+          fontWeight: '600',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <User weight="fill" size={14} /> {formatNumber(item.followers)}
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Heart weight="fill" size={14} /> {formatNumber(item.likes)}
+          </span>
+        </div>
+      </td>
+      <td
+        style={{
+          padding: '16px',
+          color: '#414141',
+          fontSize: '13px',
+          fontWeight: '600',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span style={{ display: 'flex', gap: '4px' }}>
+            <span style={{ color: '#8793a5' }}>Engage Lv:</span> {item.engageLv}
+          </span>
+          <span style={{ display: 'flex', gap: '4px' }}>
+            <span style={{ color: '#8793a5' }}>Est. Reach:</span> {formatNumber(item.estReach)}
+          </span>
+        </div>
+      </td>
+      <td style={{ padding: '16px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div style={{ display: 'flex', gap: '2px' }}>
+            {item.images.slice(0, 3).map((img, idx) => (
+              <img
+                key={idx}
+                src={img}
+                alt=""
+                style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+              />
+            ))}
+          </div>
+        </div>
+      </td>
+      <td style={{ padding: '16px' }}>{decisionActions(item)}</td>
+    </tr>
+  );
+  const renderReviewerCard = (item) => (
+    <div
+      key={item.id}
+      className={`job-reviewer-card ${selectedReviewerIds.includes(item.id) ? 'is-selected' : ''} ${getBriefSelectionClass(item)}`}
+      style={{
+        background: 'white',
+        borderRadius: '12px',
+        border: '1px solid #dfe5ed',
+        overflow: 'hidden',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+      }}
+    >
+      <div
+        style={{
+          padding: '16px',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '12px',
+          }}
+        >
+          <input
+            type="checkbox"
+            aria-label={`เลือก ${item.username}`}
+            checked={eligibleSelectedIds.includes(item.id)}
+            disabled={!canDecide(item)}
+            onChange={() => toggleReviewer(item.id)}
+          />
+          <PlatformLogo platform={item.platform} size={20} />
+          <h3
+            style={{
+              margin: 0,
+              fontSize: '16px',
+            }}
+          >
+            <a
+              href="https://www.facebook.com/buddyreview"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="reviewer-username"
+            >
+              {item.username}
+            </a>
+          </h3>
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            gap: '16px',
+            color: '#414141',
+            fontSize: '13px',
+            fontWeight: '600',
+            alignItems: 'center',
+          }}
+        >
+          <span
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <User weight="fill" size={14} /> {formatNumber(item.followers)}
+          </span>
+          <span
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <Heart weight="fill" size={14} /> {formatNumber(item.likes)}
+          </span>
+        </div>
+        <BriefSelectionSummary summary={selectionFor(item)} />
+      </div>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr',
+          gap: '2px',
+        }}
+      >
+        {item.images.slice(0, 3).map((img, idx) => (
+          <img
+            key={idx}
+            src={img}
+            alt=""
+            style={{
+              width: '100%',
+              aspectRatio: '1/1',
+              objectFit: 'cover',
+            }}
+          />
+        ))}
+      </div>
+      <div
+        style={{
+          padding: '16px',
+          fontSize: '13px',
+          color: '#414141',
+          lineHeight: '1.7',
+        }}
+      >
+        <div
+          style={{
+            marginBottom: '16px',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              gap: '6px',
+            }}
+          >
+            <span
+              style={{
+                color: '#8793a5',
+                width: '110px',
+              }}
+            >
+              ENGAGE LV.
+            </span>
+            <span
+              style={{
+                color:
+                  item.engageLv === 'GOOD' || item.engageLv === 'EXCELLENT' ? '#2bae6b' : '#f5a623',
+                fontWeight: '700',
+              }}
+            >
+              {item.engageLv}
+            </span>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              gap: '6px',
+            }}
+          >
+            <span
+              style={{
+                color: '#8793a5',
+                width: '110px',
+              }}
+            >
+              Est. REACH :
+            </span>
+            <span
+              style={{
+                fontWeight: '700',
+              }}
+            >
+              {formatNumber(item.estReach)}
+            </span>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              gap: '6px',
+            }}
+          >
+            <span
+              style={{
+                color: '#8793a5',
+                width: '110px',
+              }}
+            >
+              สมัครเมื่อ :
+            </span>
+            <span
+              style={{
+                fontWeight: '500',
+              }}
+            >
+              12/09/2026 14:
+              {(10 + ((item.sourceIndex || 0) % 50)).toString().padStart(2, '0')}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="reviewer-card-footer reviewer-card-decision-footer">
+        {decisionActions(item)}
+      </div>
+    </div>
+  );
   return (
     <div className="app-shell job-posting-detail">
       {isEditOpen && (
@@ -415,7 +802,7 @@ export function JobPostingDetail() {
                   borderRadius: '8px',
                 }}
               >
-                {['สมัคร', 'ทีมงานเลือกแล้ว', 'ลูกค้าเลือกแล้ว', 'Reject'].map((name) => {
+                {REVIEWER_STATUS_TABS.map((name) => {
                   const count = reviewers.filter((item) => matchesTab(item, name)).length;
                   return (
                     <button
@@ -555,257 +942,95 @@ export function JobPostingDetail() {
               </div>
             ) : viewMode === 'list' ? (
               <div className="reviewer-table-scroll">
-                <table
-                  style={{
-                    width: '100%',
-                    borderCollapse: 'collapse',
-                    background: 'white',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                  }}
-                >
-                  <thead
-                    style={{
-                      background: '#f8fafc',
-                      borderBottom: '1px solid #e2e8f0',
-                      textAlign: 'left',
-                    }}
-                  >
-                    <tr>
-                      <th
-                        style={{
-                          width: '44px',
-                          padding: '16px',
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          aria-label="เลือกนักรีวิวทั้งหมดในแท็บนี้"
-                          checked={allVisibleSelected}
-                          disabled={isReviewersLoading || !eligibleVisibleReviewers.length}
-                          onChange={toggleVisibleReviewers}
-                        />
-                      </th>
-                      <th
-                        style={{
-                          padding: '16px',
-                          color: '#64748b',
-                          fontWeight: '600',
-                          fontSize: '14px',
-                        }}
-                      >
-                        นักรีวิว
-                      </th>
-                      <th
-                        style={{
-                          padding: '16px',
-                          color: '#64748b',
-                          fontWeight: '600',
-                          fontSize: '14px',
-                        }}
-                      >
-                        ข้อมูลผู้ติดตาม
-                      </th>
-                      <th
-                        style={{
-                          padding: '16px',
-                          color: '#64748b',
-                          fontWeight: '600',
-                          fontSize: '14px',
-                        }}
-                      >
-                        ข้อมูลเชิงลึก
-                      </th>
-                      <th
-                        style={{
-                          padding: '16px',
-                          color: '#64748b',
-                          fontWeight: '600',
-                          fontSize: '14px',
-                        }}
-                      >
-                        ข้อมูลส่วนตัว
-                      </th>
-                      <th
-                        style={{
-                          padding: '16px',
-                          color: '#64748b',
-                          fontWeight: '600',
-                          fontSize: '14px',
-                        }}
-                      >
-                        ผลงาน
-                      </th>
-                      <th
-                        style={{
-                          padding: '16px',
-                          color: '#64748b',
-                          fontWeight: '600',
-                          fontSize: '14px',
-                        }}
-                      >
-                        จัดการ
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedReviewers.map((item) => (
-                      <tr
-                        key={item.id}
-                        className={getBriefSelectionClass(item)}
-                        style={{
-                          borderBottom: '1px solid #e2e8f0',
-                        }}
-                      >
-                        <td
+                <div className="reviewer-group-table-list">
+                  <table className="reviewer-group-table reviewer-group-table-head">
+                    {REVIEWER_TABLE_COLGROUP}
+                    <thead>
+                      <tr>
+                        <th
                           style={{
+                            width: '44px',
                             padding: '16px',
                           }}
                         >
                           <input
                             type="checkbox"
-                            aria-label={`เลือก ${item.username}`}
-                            checked={eligibleSelectedIds.includes(item.id)}
-                            disabled={!canDecide(item)}
-                            onChange={() => toggleReviewer(item.id)}
+                            aria-label="เลือกนักรีวิวทั้งหมดในแท็บนี้"
+                            checked={allVisibleSelected}
+                            disabled={isReviewersLoading || !eligibleVisibleReviewers.length}
+                            onChange={toggleVisibleReviewers}
                           />
-                        </td>
-                        <td style={{ padding: '16px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <a
-                              href="https://www.facebook.com/buddyreview"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{
-                                position: 'relative',
-                                display: 'inline-block',
-                                width: '40px',
-                                height: '40px',
-                              }}
-                            >
-                              <img
-                                src={item.images[0]}
-                                style={{
-                                  width: '40px',
-                                  height: '40px',
-                                  borderRadius: '50%',
-                                  objectFit: 'cover',
-                                }}
-                                alt=""
-                              />
-                              <div
-                                style={{
-                                  position: 'absolute',
-                                  bottom: '-2px',
-                                  right: '-2px',
-                                  background: 'white',
-                                  borderRadius: '50%',
-                                  padding: '2px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                                }}
-                              >
-                                <PlatformLogo platform={item.platform} size={14} />
-                              </div>
-                            </a>
-                            <div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <a
-                                  href="https://www.facebook.com/buddyreview"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="reviewer-username"
-                                >
-                                  {item.username}
-                                </a>
-                              </div>
-                              <BriefSelectionSummary summary={selectionFor(item)} />
-                              <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-                                สมัครเมื่อ 12/09/2026 14:
-                                {(10 + ((item.sourceIndex || 0) % 50)).toString().padStart(2, '0')}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td
+                        </th>
+                        <th
                           style={{
                             padding: '16px',
-                            color: '#414141',
-                            fontSize: '13px',
+                            color: '#64748b',
                             fontWeight: '600',
+                            fontSize: '14px',
                           }}
                         >
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <User weight="fill" size={14} /> {formatNumber(item.followers)}
-                            </span>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <Heart weight="fill" size={14} /> {formatNumber(item.likes)}
-                            </span>
-                          </div>
-                        </td>
-                        <td
+                          นักรีวิว
+                        </th>
+                        <th
                           style={{
                             padding: '16px',
-                            color: '#414141',
-                            fontSize: '13px',
+                            color: '#64748b',
                             fontWeight: '600',
+                            fontSize: '14px',
                           }}
                         >
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <span style={{ display: 'flex', gap: '4px' }}>
-                              <span style={{ color: '#8793a5' }}>Engage Lv:</span> {item.engageLv}
-                            </span>
-                            <span style={{ display: 'flex', gap: '4px' }}>
-                              <span style={{ color: '#8793a5' }}>Est. Reach:</span>{' '}
-                              {formatNumber(item.estReach)}
-                            </span>
-                          </div>
-                        </td>
-                        <td
+                          ข้อมูลผู้ติดตาม
+                        </th>
+                        <th
                           style={{
                             padding: '16px',
-                            color: '#414141',
-                            fontSize: '13px',
+                            color: '#64748b',
                             fontWeight: '600',
+                            fontSize: '14px',
                           }}
                         >
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              {item.gender === 'MALE' ? (
-                                <GenderMale weight="bold" size={14} />
-                              ) : (
-                                <GenderFemale weight="bold" size={14} />
-                              )}{' '}
-                              {item.gender}
-                            </span>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <Cake weight="fill" size={14} /> {item.age} ปี
-                            </span>
-                          </div>
-                        </td>
-                        <td style={{ padding: '16px' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            <div style={{ display: 'flex', gap: '2px' }}>
-                              {item.images.slice(0, 3).map((img, idx) => (
-                                <img
-                                  key={idx}
-                                  src={img}
-                                  alt=""
-                                  style={{ width: '40px', height: '40px', objectFit: 'cover' }}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                        </td>
-                        <td style={{ padding: '16px' }}>{decisionActions(item)}</td>
+                          ข้อมูลเชิงลึก
+                        </th>
+                        <th
+                          style={{
+                            padding: '16px',
+                            color: '#64748b',
+                            fontWeight: '600',
+                            fontSize: '14px',
+                          }}
+                        >
+                          ผลงาน
+                        </th>
+                        <th
+                          style={{
+                            padding: '16px',
+                            color: '#64748b',
+                            fontWeight: '600',
+                            fontSize: '14px',
+                          }}
+                        >
+                          จัดการ
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                  </table>
+                  {paginatedGroups.map(({ group, pageReviewers }) => (
+                    <section key={group.id} className="reviewer-group-block">
+                      {renderGroupHeader(group)}
+                      {!collapsedGroupIds.includes(group.id) && (
+                        <table className="reviewer-group-table">
+                          {REVIEWER_TABLE_COLGROUP}
+                          <tbody>{pageReviewers.map((item) => renderReviewerRow(item))}</tbody>
+                        </table>
+                      )}
+                      {getOtherTabNote(group) && (
+                        <p className="reviewer-group-note">
+                          <Info size={16} /> {getOtherTabNote(group)}
+                        </p>
+                      )}
+                    </section>
+                  ))}
+                </div>
               </div>
             ) : (
               <div
@@ -815,219 +1040,20 @@ export function JobPostingDetail() {
                   gap: '24px',
                 }}
               >
-                {paginatedReviewers.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`job-reviewer-card ${selectedReviewerIds.includes(item.id) ? 'is-selected' : ''} ${getBriefSelectionClass(item)}`}
-                    style={{
-                      background: 'white',
-                      borderRadius: '12px',
-                      border: '1px solid #dfe5ed',
-                      overflow: 'hidden',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-                    }}
-                  >
-                    <div
-                      style={{
-                        padding: '16px',
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          marginBottom: '12px',
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          aria-label={`เลือก ${item.username}`}
-                          checked={eligibleSelectedIds.includes(item.id)}
-                          disabled={!canDecide(item)}
-                          onChange={() => toggleReviewer(item.id)}
-                        />
-                        <PlatformLogo platform={item.platform} size={20} />
-                        <h3
-                          style={{
-                            margin: 0,
-                            fontSize: '16px',
-                          }}
-                        >
-                          <a
-                            href="https://www.facebook.com/buddyreview"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="reviewer-username"
-                          >
-                            {item.username}
-                          </a>
-                        </h3>
+                {paginatedGroups.map(({ group, pageReviewers }) => (
+                  <section key={group.id} className="reviewer-group-block">
+                    {renderGroupHeader(group)}
+                    {!collapsedGroupIds.includes(group.id) && (
+                      <div className="reviewer-group-cards">
+                        {pageReviewers.map(renderReviewerCard)}
                       </div>
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: '16px',
-                          color: '#414141',
-                          fontSize: '13px',
-                          fontWeight: '600',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <span
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          <User weight="fill" size={14} /> {formatNumber(item.followers)}
-                        </span>
-                        <span
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          <Heart weight="fill" size={14} /> {formatNumber(item.likes)}
-                        </span>
-                        <span
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          <Cake weight="fill" size={14} /> {item.age}
-                        </span>
-                        <span
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          {item.gender === 'MALE' ? (
-                            <GenderMale weight="bold" size={14} />
-                          ) : (
-                            <GenderFemale weight="bold" size={14} />
-                          )}{' '}
-                          {item.gender}
-                        </span>
-                      </div>
-                      <BriefSelectionSummary summary={selectionFor(item)} />
-                    </div>
-                    <div
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr 1fr',
-                        gap: '2px',
-                      }}
-                    >
-                      {item.images.slice(0, 3).map((img, idx) => (
-                        <img
-                          key={idx}
-                          src={img}
-                          alt=""
-                          style={{
-                            width: '100%',
-                            aspectRatio: '1/1',
-                            objectFit: 'cover',
-                          }}
-                        />
-                      ))}
-                    </div>
-                    <div
-                      style={{
-                        padding: '16px',
-                        fontSize: '13px',
-                        color: '#414141',
-                        lineHeight: '1.7',
-                      }}
-                    >
-                      <div
-                        style={{
-                          marginBottom: '16px',
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: 'flex',
-                            gap: '6px',
-                          }}
-                        >
-                          <span
-                            style={{
-                              color: '#8793a5',
-                              width: '110px',
-                            }}
-                          >
-                            ENGAGE LV.
-                          </span>
-                          <span
-                            style={{
-                              color:
-                                item.engageLv === 'GOOD' || item.engageLv === 'EXCELLENT'
-                                  ? '#2bae6b'
-                                  : '#f5a623',
-                              fontWeight: '700',
-                            }}
-                          >
-                            {item.engageLv}
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            display: 'flex',
-                            gap: '6px',
-                          }}
-                        >
-                          <span
-                            style={{
-                              color: '#8793a5',
-                              width: '110px',
-                            }}
-                          >
-                            Est. REACH :
-                          </span>
-                          <span
-                            style={{
-                              fontWeight: '700',
-                            }}
-                          >
-                            {formatNumber(item.estReach)}
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            display: 'flex',
-                            gap: '6px',
-                          }}
-                        >
-                          <span
-                            style={{
-                              color: '#8793a5',
-                              width: '110px',
-                            }}
-                          >
-                            สมัครเมื่อ :
-                          </span>
-                          <span
-                            style={{
-                              fontWeight: '500',
-                            }}
-                          >
-                            12/09/2026 14:
-                            {(10 + ((item.sourceIndex || 0) % 50)).toString().padStart(2, '0')}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="reviewer-card-footer reviewer-card-decision-footer">
-                      {decisionActions(item)}
-                    </div>
-                  </div>
+                    )}
+                    {getOtherTabNote(group) && (
+                      <p className="reviewer-group-note">
+                        <Info size={16} /> {getOtherTabNote(group)}
+                      </p>
+                    )}
+                  </section>
                 ))}
               </div>
             )}

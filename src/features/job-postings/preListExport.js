@@ -24,7 +24,15 @@ const PROFILE_URL_BUILDERS = {
 
 const COMPACT_MULTIPLIERS = { K: 1e3, M: 1e6, B: 1e9 };
 
-export const PRE_LIST_HEADERS = ['No.', 'Account Name', 'Link Account', 'Platform', 'Followers'];
+export const PRE_LIST_HEADERS = [
+  'No.',
+  'Account Name',
+  'Link Account',
+  'Platform',
+  'Followers',
+  'Profile ID',
+  'Profile Name',
+];
 
 const normalizePlatformKey = (platform) =>
   String(platform || '')
@@ -58,12 +66,18 @@ export function createPreListFilename({ briefId, briefName, jobId }) {
   return `Pre-List ${briefId} : ${safeBriefName} (${jobId}).csv`;
 }
 
-export function createPreListRows(reviewers) {
-  return reviewers.map((reviewer, index) => [
-    index + 1,
-    reviewer.username,
-    getReviewerProfileUrl(reviewer),
-    getPlatformDisplayName(reviewer.platform),
-    parseFollowerCount(reviewer.followers),
-  ]);
+// `getProfile` resolves the reviewer's Influencer profile ({ id, name }).
+export function createPreListRows(reviewers, getProfile = () => null) {
+  return reviewers.map((reviewer, index) => {
+    const profile = getProfile(reviewer);
+    return [
+      index + 1,
+      reviewer.username,
+      getReviewerProfileUrl(reviewer),
+      getPlatformDisplayName(reviewer.platform),
+      parseFollowerCount(reviewer.followers),
+      profile?.id || '',
+      profile?.name || '',
+    ];
+  });
 }

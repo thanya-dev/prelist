@@ -3628,7 +3628,7 @@
 /* Posting screens share the existing Buddy Review tokens and type scale. */
 @layer components {
   .job-posting-detail {
-    background: var(--soft);
+    background: white;
   }
   .job-posting-detail .list-main {
     @apply pb-10;
@@ -5735,5 +5735,174 @@
   .job-reviewer-card.is-brief-selected {
     background: #fffbe6 !important;
     box-shadow: inset 3px 0 0 #f5c400 !important;
+  }
+}
+
+@layer components {
+  /* Influencer grouping on the Job Posting reviewer list */
+  .influencer-group-header input[type='checkbox'],
+  .reviewer-group-table-list input[type='checkbox'] {
+    accent-color: #3b28cc;
+    width: 17px;
+    height: 17px;
+    cursor: pointer;
+  }
+
+  /* Columns mirror the reviewer table: 56px checkbox column, then 16px cell padding, so the
+     profile name lines up with each social's avatar. */
+  .influencer-group-header {
+    @apply grid items-center py-3 pr-4 pl-4;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    background: #f5f3ff;
+    cursor: pointer;
+  }
+  .influencer-group-header:hover {
+    background: #ede9fe;
+  }
+  .influencer-group-header.is-unprofiled {
+    background: #f1f5f9;
+  }
+  .influencer-group-header.is-unprofiled:hover {
+    background: #e2e8f0;
+  }
+  .influencer-group-toggle {
+    @apply ml-auto inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent;
+    color: #475569;
+    transition: transform 0.15s ease;
+  }
+  .influencer-group-toggle:hover {
+    background: #ede9fe;
+  }
+  .influencer-group-toggle.is-collapsed {
+    transform: rotate(-90deg);
+  }
+  .influencer-group-identity {
+    @apply flex min-w-0 flex-col gap-1 pl-4;
+  }
+  .influencer-group-name {
+    @apply flex flex-wrap items-center gap-x-2 gap-y-1 text-base;
+    color: #1e293b;
+  }
+  .influencer-group-name > span {
+    @apply text-sm;
+    color: #64748b;
+  }
+  .influencer-group-demo {
+    @apply inline-flex items-center gap-1;
+  }
+  .influencer-group-meta {
+    @apply flex flex-wrap items-center gap-2 text-sm;
+    color: #475569;
+  }
+  .influencer-profile-link {
+    @apply inline-flex w-fit items-center gap-1 no-underline;
+    color: #1e293b;
+  }
+  .influencer-profile-link svg {
+    color: #3b28cc;
+  }
+  .influencer-profile-link:hover,
+  .influencer-profile-link:focus-visible {
+    color: #3b28cc;
+    text-decoration: underline;
+  }
+
+  /* Ghost icon Accept / Reject buttons on reviewer table rows */
+  .reviewer-icon-actions {
+    @apply flex items-center gap-2;
+  }
+  .reviewer-card-decision-footer .reviewer-icon-actions {
+    @apply justify-end;
+  }
+  .reviewer-card-decision-footer .reviewer-icon-action {
+    width: 36px;
+  }
+  .reviewer-icon-action {
+    @apply relative inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border bg-transparent;
+    border-color: #e2e8f0;
+    color: #64748b;
+    transition:
+      background 0.15s ease,
+      color 0.15s ease,
+      border-color 0.15s ease;
+  }
+  .reviewer-icon-reject:hover,
+  .reviewer-icon-reject:focus-visible {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+  }
+  .reviewer-icon-accept:hover,
+  .reviewer-icon-accept:focus-visible {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #15803d;
+  }
+  .reviewer-icon-action::after {
+    content: attr(data-tooltip);
+    @apply pointer-events-none absolute bottom-full left-1/2 z-10 mb-1.5 rounded px-2 py-1 text-xs font-medium whitespace-nowrap text-white opacity-0;
+    background: #1e293b;
+    transform: translateX(-50%);
+    transition: opacity 0.15s ease;
+  }
+  .reviewer-icon-action:hover::after,
+  .reviewer-icon-action:focus-visible::after {
+    opacity: 1;
+  }
+
+  /* Table view: one bordered block per Influencer profile, sharing the header's columns. */
+  .reviewer-group-table-list {
+    @apply flex flex-col gap-4;
+    min-width: 1000px;
+  }
+  .reviewer-group-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    background: white;
+  }
+  .reviewer-group-table-head {
+    @apply overflow-hidden rounded-lg border;
+    border-color: #e2e8f0;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #f8fafc;
+    text-align: left;
+  }
+  .reviewer-group-table tbody tr:last-child {
+    border-bottom: 0 !important;
+  }
+  .reviewer-group-table tbody tr:first-child {
+    border-top: 1px solid #e2e8f0;
+  }
+  .reviewer-group-note {
+    @apply m-0 px-4 py-2 text-sm;
+    color: #64748b;
+    background: #fafaff;
+    border-top: 1px solid #e2e8f0;
+  }
+  .reviewer-group-note svg {
+    vertical-align: -3px;
+  }
+
+  .reviewer-group-block {
+    grid-column: 1 / -1;
+    @apply rounded-xl border bg-white;
+    overflow: clip;
+    border-color: #ddd6fe;
+  }
+  .reviewer-group-cards {
+    @apply grid gap-4 p-4;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  }
+
+  @media (max-width: 760px) {
+    .reviewer-group-table-list .influencer-group-header,
+    .reviewer-group-table-list .reviewer-group-note {
+      position: sticky;
+      left: 0;
+      max-width: calc(100vw - 32px);
+      box-sizing: border-box;
+    }
   }
 }

@@ -20,6 +20,13 @@ const WORK_OPTIONS = [
   ['idea-draft-post', 'ส่งคอนเทนต์ไอเดีย, ดราฟต์ และโพสต์', 'เหมาะสำหรับงานวิดีโอ'],
   ['draft-post', 'ส่งดราฟต์และโพสต์'],
 ];
+const PACKAGE_TYPE_OPTIONS = [
+  ['standard', 'Standard'],
+  ['rate-card', 'Rate Card'],
+];
+const RATE_CARD_SUBTITLE = 'Rate Card';
+// Legacy campaigns saved before Package Type existed are treated as Standard.
+const getPackageType = (campaign) => campaign?.packageType || 'standard';
 const SCOPE_OPTIONS = CONTENT_SCOPE_GROUPS.map((scope) => [scope.label, scope.label]);
 const MAX_FILE_SIZE = 3 * 1024 * 1024;
 // The brand logo defaults from the source posting but stays editable in the campaign.
@@ -58,8 +65,9 @@ export function CampaignForm() {
         location.state?.copiedCampaign || {
           ...DEFAULT_CAMPAIGN,
           id: '',
+          packageType: 'standard',
           sourcePostings: [],
-          name: '',
+          name: project.name || '',
           subtitle: '',
           group: '',
           status: 'draft',
@@ -88,6 +96,10 @@ export function CampaignForm() {
     return getBriefById(savedBrief)?.id || savedBrief || (briefIds.length === 1 ? briefIds[0] : '');
   });
   const sourcePostingRef = useRef(null);
+  // Remembers Standard-only values so switching back from Rate Card restores them.
+  const standardValuesRef = useRef(null);
+  const packageType = getPackageType(values);
+  const isRateCard = packageType === 'rate-card';
   const hasSource = values.sourcePostings?.length > 0;
   const isLocked = (key) => hasSource && LOCKED_POSTING_FIELDS.includes(key);
 
@@ -108,10 +120,12 @@ export function CampaignForm() {
       }
       const sourceOriginalValues =
         current.sourceOriginalValues ||
-        Object.fromEntries(['name', ...POSTING_CAMPAIGN_FIELDS].map((key) => [key, current[key]]));
+        Object.fromEntries(POSTING_CAMPAIGN_FIELDS.map((key) => [key, current[key]]));
       return {
         ...current,
         ...getCampaignPostingFields(postings),
+        // Campaign Title defaults from the Project Name and is never overwritten by a posting.
+        name: current.name,
         briefLink:
           current.sourcePostings?.length > 0
             ? current.briefLink
@@ -122,12 +136,49 @@ export function CampaignForm() {
     });
   };
 
+  const handlePackageTypeChange = (nextType) => {
+    if (nextType === packageType) return;
+    setError('');
+    if (nextType === 'rate-card') {
+      standardValuesRef.current = {
+        sourcePostings: values.sourcePostings || [],
+        sourceBriefId,
+        subtitle: values.subtitle,
+      };
+      setValues((current) => {
+        const { sourcePostings, sourcePosting, sourceOriginalValues, ...remaining } = current;
+        return {
+          ...remaining,
+          ...(current.sourcePostings?.length > 0 ? sourceOriginalValues : {}),
+          sourcePostings: [],
+          packageType: 'rate-card',
+          subtitle: RATE_CARD_SUBTITLE,
+        };
+      });
+      return;
+    }
+    const previous = standardValuesRef.current;
+    setValues((current) => ({
+      ...current,
+      packageType: 'standard',
+      // Keep a subtitle the user typed for Rate Card; only undo the untouched default.
+      subtitle:
+        current.subtitle === RATE_CARD_SUBTITLE ? (previous?.subtitle ?? '') : current.subtitle,
+    }));
+    if (previous) {
+      setSourceBriefId(previous.sourceBriefId);
+      if (previous.sourcePostings.length > 0) handleSelectPosting(previous.sourcePostings);
+    }
+  };
+
   // Inherited (locked) fields cannot be fixed here, so they never block saving.
   const isMissing = (key) => !isLocked(key) && !String(values[key] ?? '').trim();
   const briefLink = values.briefLink || '';
   const hasValidBrief = Boolean(values.briefFiles?.length) || isHttpUrl(briefLink);
   const missingFields = [
     isMissing('assignOp') && 'Assign OP',
+    !isRateCard && !String(sourceBriefId || '').trim() && 'Brief',
+    !isRateCard && !hasSource && 'ประกาศ',
     isMissing('group') && 'Group',
     isMissing('workflow') && 'งานที่นักรีวิวต้องส่ง',
     isMissing('contentScope') && 'สโคปงาน',
@@ -144,6 +195,8 @@ export function CampaignForm() {
       const now = new Date().toISOString();
       const campaign = {
         ...values,
+        packageType,
+        ...(isRateCard ? { sourcePostings: [] } : {}),
         name: values.name.trim(),
         id: id || `campaign-${Date.now()}`,
         createdAt: values.createdAt || now,
@@ -245,17 +298,49 @@ export function CampaignForm() {
               </select>
             </Field>
           </section>
-          <CampaignPostingSource
-            project={project}
-            sourcePostings={values.sourcePostings || []}
-            onSelect={handleSelectPosting}
-            briefId={sourceBriefId}
-            onBriefChange={setSourceBriefId}
-            error=""
-            selectRef={sourcePostingRef}
-            savedPosting={saved?.sourcePostings?.[0] || saved?.sourcePosting || null}
-            campaignId={id || ''}
-          />
+          <section className="cw-panel" aria-label="Package Type">
+            {/* Same label styling as the Field labels (e.g. Assign OP). */}
+            <div className="grid gap-2">
+              <span className="field" id="campaign-package-type-label">
+                <span>
+                  Package Type <b className="text-[#f05b60]">*</b>
+                </span>
+              </span>
+              <div
+                className="cw-choices grid grid-cols-2 max-[400px]:gap-2 max-[400px]:[&>label]:px-3 [&_strong]:whitespace-nowrap [&>label]:items-center [&_input]:mt-0"
+                role="radiogroup"
+                aria-labelledby="campaign-package-type-label"
+              >
+                {PACKAGE_TYPE_OPTIONS.map(([value, label]) => (
+                  <label
+                    key={value}
+                    className={`cw-choice ${packageType === value ? 'selected' : ''}`}
+                  >
+                    <input
+                      type="radio"
+                      name="packageType"
+                      checked={packageType === value}
+                      onChange={() => handlePackageTypeChange(value)}
+                    />
+                    <strong>{label}</strong>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </section>
+          {!isRateCard && (
+            <CampaignPostingSource
+              project={project}
+              sourcePostings={values.sourcePostings || []}
+              onSelect={handleSelectPosting}
+              briefId={sourceBriefId}
+              onBriefChange={setSourceBriefId}
+              error=""
+              selectRef={sourcePostingRef}
+              savedPosting={saved?.sourcePostings?.[0] || saved?.sourcePosting || null}
+              campaignId={id || ''}
+            />
+          )}
           <section className="cw-panel">
             <Field
               label="Group"
